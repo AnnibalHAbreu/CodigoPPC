@@ -175,6 +175,48 @@
     <Single Type="{6198ad31-4b98-445c-927f-3258a0e82fe3}" Method="IArchivable">
       <Single Name="IsRoot" Type="bool">True</Single>
       <Single Name="MetaObject" Type="{81297157-7ec9-45ce-845e-84cab2b88ade}" Method="IArchivable">
+        <Single Name="Guid" Type="System.Guid">35666114-8ece-4e05-bfe8-5deb307e26f3</Single>
+        <Single Name="ParentGuid" Type="System.Guid">00000000-0000-0000-0000-000000000000</Single>
+        <Single Name="Name" Type="string">Variaveis</Single>
+        <Dictionary Type="{2c41fa04-1834-41c1-816e-303c7aa2c05b}" Name="Properties">
+          <Entry>
+            <Key>
+              <Single Type="System.Guid">829a18f2-c514-4f6e-9634-1df173429203</Single>
+            </Key>
+            <Value>
+              <Single Type="{829a18f2-c514-4f6e-9634-1df173429203}" Method="IArchivable">
+                <Dictionary Type="{fa2ee218-a39b-4b6d-b249-49dbddbd168a}" Name="ParentObjects">
+                  <Entry>
+                    <Key>
+                      <Single Type="System.Guid">d9b2b2cc-ea99-4c3b-aa42-1e5c49e65b84</Single>
+                    </Key>
+                    <Value>
+                      <Single Type="System.Guid">c9695764-b6c7-43f8-889e-aafa7558d868</Single>
+                    </Value>
+                  </Entry>
+                </Dictionary>
+              </Single>
+            </Value>
+          </Entry>
+        </Dictionary>
+        <Single Name="TypeGuid" Type="System.Guid">738bea1e-99bb-4f04-90bb-a7a567e74e3a</Single>
+        <Null Name="EmbeddedTypeGuids" />
+        <Single Name="Timestamp" Type="long">639075415221573325</Single>
+      </Single>
+      <Single Name="Object" Type="{738bea1e-99bb-4f04-90bb-a7a567e74e3a}" Method="IArchivable">
+        <Single Name="StructuredViewGuid" Type="System.Guid">d9b2b2cc-ea99-4c3b-aa42-1e5c49e65b84</Single>
+      </Single>
+      <Single Name="ParentSVNodeGuid" Type="System.Guid">c9695764-b6c7-43f8-889e-aafa7558d868</Single>
+      <Array Name="Path" Type="string">
+        <Single Type="string">Dispositivo</Single>
+        <Single Type="string">PLC Logic</Single>
+        <Single Type="string">Application</Single>
+      </Array>
+      <Single Name="Index" Type="int">-1</Single>
+    </Single>
+    <Single Type="{6198ad31-4b98-445c-927f-3258a0e82fe3}" Method="IArchivable">
+      <Single Name="IsRoot" Type="bool">True</Single>
+      <Single Name="MetaObject" Type="{81297157-7ec9-45ce-845e-84cab2b88ade}" Method="IArchivable">
         <Single Name="Guid" Type="System.Guid">14cd0f6d-980a-4bd8-bc37-de00fcab7ded</Single>
         <Single Name="ParentGuid" Type="System.Guid">c9695764-b6c7-43f8-889e-aafa7558d868</Single>
         <Single Name="Name" Type="string">FB_ModBus</Single>
@@ -1873,550 +1915,6 @@ END_VAR
         <Single Type="string">PLC Logic</Single>
         <Single Type="string">Application</Single>
         <Single Type="string">IHM Pages</Single>
-      </Array>
-      <Single Name="Index" Type="int">-1</Single>
-    </Single>
-    <Single Type="{6198ad31-4b98-445c-927f-3258a0e82fe3}" Method="IArchivable">
-      <Single Name="IsRoot" Type="bool">True</Single>
-      <Single Name="MetaObject" Type="{81297157-7ec9-45ce-845e-84cab2b88ade}" Method="IArchivable">
-        <Single Name="Guid" Type="System.Guid">3bf7bb7a-8b9b-4000-bb80-a59cd69f90de</Single>
-        <Single Name="ParentGuid" Type="System.Guid">c9695764-b6c7-43f8-889e-aafa7558d868</Single>
-        <Single Name="Name" Type="string">GVL_ALARM_MANAGER</Single>
-        <Dictionary Type="{2c41fa04-1834-41c1-816e-303c7aa2c05b}" Name="Properties">
-          <Entry>
-            <Key>
-              <Single Type="System.Guid">829a18f2-c514-4f6e-9634-1df173429203</Single>
-            </Key>
-            <Value>
-              <Single Type="{829a18f2-c514-4f6e-9634-1df173429203}" Method="IArchivable">
-                <Dictionary Type="{fa2ee218-a39b-4b6d-b249-49dbddbd168a}" Name="ParentObjects">
-                  <Entry>
-                    <Key>
-                      <Single Type="System.Guid">d9b2b2cc-ea99-4c3b-aa42-1e5c49e65b84</Single>
-                    </Key>
-                    <Value>
-                      <Single Type="System.Guid">35666114-8ece-4e05-bfe8-5deb307e26f3</Single>
-                    </Value>
-                  </Entry>
-                </Dictionary>
-              </Single>
-            </Value>
-          </Entry>
-        </Dictionary>
-        <Single Name="TypeGuid" Type="System.Guid">ffbfa93a-b94d-45fc-a329-229860183b1d</Single>
-        <Array Name="EmbeddedTypeGuids" Type="System.Guid">
-          <Single Type="System.Guid">a9ed5b7e-75c5-4651-af16-d2c27e98cb94</Single>
-        </Array>
-        <Single Name="Timestamp" Type="long">639079067819414569</Single>
-      </Single>
-      <Single Name="Object" Type="{ffbfa93a-b94d-45fc-a329-229860183b1d}" Method="IArchivable">
-        <Single Name="Interface" Type="{a9ed5b7e-75c5-4651-af16-d2c27e98cb94}" Method="IArchivable">
-          <Single Name="TextDocument" Type="{f3878285-8e4f-490b-bb1b-9acbb7eb04db}" Method="IArchivable">
-            <Single Name="TextBlobForSerialisation" Type="string">{attribute 'qualified_only'}
-VAR_GLOBAL
-    // ─────────────────────────────────────────────────────────
-    // ALARM MANAGER FLAGS (condições booleanas)
-    // ─────────────────────────────────────────────────────────
-
-	// Falhas na inicialização 
-	CRIT_SERIAL_INIT_FAIL			: BOOL := FALSE;	// Critico - Falha para iniciar as seriais
-	CRIT_K1_TIMEOUT 				: BOOL := FALSE;    // Critico - falha no acionamento de K1
-	CRIT_K2_TIMEOUT 				: BOOL := FALSE;    // Critico - falha no acionamento de K2
-
-    // Medição / Medidor
-    ALARM_MEAS_MODBUS_TIMEOUT      	: BOOL := FALSE;  	// timeout de leitura (READ)
-    ALARM_MEAS_MODBUS_ERRO       	: BOOL := FALSE;  	// xError do medidor (READ)
-    ALARM_MEAS_FROZEN	            : BOOL := FALSE;  	// diagnosticCode = A900 (se aplicável)
-    ALARM_MEAS_USING_LAST_VALUEU	: BOOL := FALSE;  	// bPoucosErros=TRUE e bDadosOK=FALSE
-	ALARM_MEAS_RANGE_ERROR    		: BOOL := FALSE;    // Warning: Valor fora de faixa
-    ALARM_MEAS_XCHECK_FAIL   		: BOOL := FALSE;    // Warning: Validação cruzada 
-    CRIT_MEAS_PERSISTENT_FAIL		: BOOL := FALSE;  	// bPoucosErros = FALSE	
-    CRIT_MEAS_MODBUS_TIMEOUT      	: BOOL := FALSE;  	// timeout de leitura (READ) repeticao fora da tolerancia
-    CRIT_MEAS_MODBUS_ERRO       	: BOOL := FALSE;  	// xError do medidor (READ)  repeticao fora da tolerancia
-
-    // Comunicação inversores
-    CRIT_COM_CHANNEL_FAIL           : BOOL := FALSE;  	// falha geral de comunicação → FAIL/STOP
-	CRIT_CH1_MODBUS_TIMEOUT        	: BOOL := FALSE; 	// Canal COM1 TIMEOUT 3x
-    CRIT_CH2_MODBUS_TIMEOUT        	: BOOL := FALSE; 	// Canal COM2 TIMEOUT 3x
-	CRIT_CH1_MODBUS_ERRO	       	: BOOL := FALSE;  	// &gt;50% falhas COM1 no ciclo
-    CRIT_CH2_MODBUS_ERRO        	: BOOL := FALSE;  	// &gt;50% falhas COM2 no ciclo
-
-    // Sistema
-	ALARM_SCAN_OVERRUN        		: BOOL := FALSE;    // Warning: Watchdog de ciclo
-    ALARM_TC_POWER_NOT_SET          : BOOL := FALSE;    // TC_Power_kW = 0 na inicialização
-    CRIT_NO_INVERTERS        		: BOOL := FALSE;    // Error: Nenhum inversor configurado
-    CRIT_RTC_FAIL            		: BOOL := FALSE;    // Error: Falha RTC
-    CRIT_INSTALLED_PWR_ZERO  		: BOOL := FALSE;    // Error: Potência instalada = 0
-	CRIT_INSTALLED_SMAX_ZERO  		: BOOL := FALSE;    // Error: Potência reativa instalada = 0
-	CRIT_SCAN_OVERRUN        		: BOOL := FALSE;    // CRITICO: Watchdog de ciclo 3x	
-
-	
-    // Proteções normativas
-    CRIT_HARDLIMIT_15S       		: BOOL := FALSE;    // Error: P &gt; LPI+10% por &gt;15s
-    CRIT_EXPORT_OVER_LPI_30S   		: BOOL := FALSE;    // Error: P &gt; LPI por &gt;30s
-    CRIT_K2_NOT_OPENED       		: BOOL := FALSE;    // Error: K2 não abriu após trip
-	
-	// Status do sistema
-	ALARM_FAIL_ACTIVE				: BOOL := FALSE;  	// MachineState=FAIL
-    CRIT_STOP_ACTIVE	            : BOOL := FALSE;  	// MachineState=STOP
-	CRIT_SCHEDULE_INDEX_INVALID		: BOOL := FALSE;    // Dia ou hora da semana inválido (CRITICAL)
-	
-    // ── Controle / PF ──
-    ALARM_PF_BELOW_TARGET     		: BOOL := FALSE;    // Warning: PF &lt; 0.92
-    ALARM_PF_CRITICAL         		: BOOL := FALSE;    // Error: PF &lt; 0.92 + Q saturado
-    ALARM_Q_LIMITED_BY_SMAX    		: BOOL := FALSE;    // Info: Q limitado por S
-END_VAR</Single>
-            <Single Name="LineInfoPersistence" Type="string">3bf7bb7a-8b9b-4000-bb80-a59cd69f90de_Decl_LineIds</Single>
-          </Single>
-        </Single>
-        <Null Name="NetVarProperties" />
-        <Single Name="ParameterList" Type="bool">False</Single>
-        <Single Name="AddAttributeSubsequent" Type="bool">False</Single>
-      </Single>
-      <Single Name="ParentSVNodeGuid" Type="System.Guid">35666114-8ece-4e05-bfe8-5deb307e26f3</Single>
-      <Array Name="Path" Type="string">
-        <Single Type="string">Dispositivo</Single>
-        <Single Type="string">PLC Logic</Single>
-        <Single Type="string">Application</Single>
-        <Single Type="string">Variaveis</Single>
-      </Array>
-      <Single Name="Index" Type="int">-1</Single>
-    </Single>
-    <Single Type="{6198ad31-4b98-445c-927f-3258a0e82fe3}" Method="IArchivable">
-      <Single Name="IsRoot" Type="bool">True</Single>
-      <Single Name="MetaObject" Type="{81297157-7ec9-45ce-845e-84cab2b88ade}" Method="IArchivable">
-        <Single Name="Guid" Type="System.Guid">0d2a4d0a-e657-4523-ac59-b440e60d8c75</Single>
-        <Single Name="ParentGuid" Type="System.Guid">c9695764-b6c7-43f8-889e-aafa7558d868</Single>
-        <Single Name="Name" Type="string">GVL_EventLog</Single>
-        <Dictionary Type="{2c41fa04-1834-41c1-816e-303c7aa2c05b}" Name="Properties">
-          <Entry>
-            <Key>
-              <Single Type="System.Guid">829a18f2-c514-4f6e-9634-1df173429203</Single>
-            </Key>
-            <Value>
-              <Single Type="{829a18f2-c514-4f6e-9634-1df173429203}" Method="IArchivable">
-                <Dictionary Type="{fa2ee218-a39b-4b6d-b249-49dbddbd168a}" Name="ParentObjects">
-                  <Entry>
-                    <Key>
-                      <Single Type="System.Guid">d9b2b2cc-ea99-4c3b-aa42-1e5c49e65b84</Single>
-                    </Key>
-                    <Value>
-                      <Single Type="System.Guid">35666114-8ece-4e05-bfe8-5deb307e26f3</Single>
-                    </Value>
-                  </Entry>
-                </Dictionary>
-              </Single>
-            </Value>
-          </Entry>
-        </Dictionary>
-        <Single Name="TypeGuid" Type="System.Guid">ffbfa93a-b94d-45fc-a329-229860183b1d</Single>
-        <Array Name="EmbeddedTypeGuids" Type="System.Guid">
-          <Single Type="System.Guid">a9ed5b7e-75c5-4651-af16-d2c27e98cb94</Single>
-        </Array>
-        <Single Name="Timestamp" Type="long">639075415312493779</Single>
-      </Single>
-      <Single Name="Object" Type="{ffbfa93a-b94d-45fc-a329-229860183b1d}" Method="IArchivable">
-        <Single Name="Interface" Type="{a9ed5b7e-75c5-4651-af16-d2c27e98cb94}" Method="IArchivable">
-          <Single Name="TextDocument" Type="{f3878285-8e4f-490b-bb1b-9acbb7eb04db}" Method="IArchivable">
-            <Single Name="TextBlobForSerialisation" Type="string">{attribute 'qualified_only'}
-// ════════════════════════════════════════════════════════════════════
-// GVL_EventLog — Constantes do sistema de log de eventos
-// ════════════════════════════════════════════════════════════════════
-// Autor: Eng. Principal / Revisão Técnica PPC-GD
-// Plataforma: WAGO CC100 (751-9402) / CODESYS V3.5 SP21 Patch 4
-//
-// DIMENSIONAMENTO:
-//   64 entradas × 28 bytes = ~1.792 bytes de RETAIN
-//   WAGO CC100 possui ~32 kB RETAIN → uso &lt; 6%
-//   Com ~1 evento/min, cobre &gt;1 hora de histórico completo
-//   Com taxa de pico (~10 eventos em cascata), ainda retém &gt;6 min
-// ════════════════════════════════════════════════════════════════════
-{attribute 'qualified_only'}
-VAR_GLOBAL CONSTANT
-    MAX_EVENT_ENTRIES   : UINT := 64;   // Tamanho do ring buffer (potência de 2 facilita debug)
-END_VAR</Single>
-            <Single Name="LineInfoPersistence" Type="string">0d2a4d0a-e657-4523-ac59-b440e60d8c75_Decl_LineIds</Single>
-          </Single>
-        </Single>
-        <Null Name="NetVarProperties" />
-        <Single Name="ParameterList" Type="bool">False</Single>
-        <Single Name="AddAttributeSubsequent" Type="bool">False</Single>
-      </Single>
-      <Single Name="ParentSVNodeGuid" Type="System.Guid">35666114-8ece-4e05-bfe8-5deb307e26f3</Single>
-      <Array Name="Path" Type="string">
-        <Single Type="string">Dispositivo</Single>
-        <Single Type="string">PLC Logic</Single>
-        <Single Type="string">Application</Single>
-        <Single Type="string">Variaveis</Single>
-      </Array>
-      <Single Name="Index" Type="int">-1</Single>
-    </Single>
-    <Single Type="{6198ad31-4b98-445c-927f-3258a0e82fe3}" Method="IArchivable">
-      <Single Name="IsRoot" Type="bool">True</Single>
-      <Single Name="MetaObject" Type="{81297157-7ec9-45ce-845e-84cab2b88ade}" Method="IArchivable">
-        <Single Name="Guid" Type="System.Guid">7e0139c1-8265-48c9-8ebe-44083548a268</Single>
-        <Single Name="ParentGuid" Type="System.Guid">c9695764-b6c7-43f8-889e-aafa7558d868</Single>
-        <Single Name="Name" Type="string">GVL_Main</Single>
-        <Dictionary Type="{2c41fa04-1834-41c1-816e-303c7aa2c05b}" Name="Properties">
-          <Entry>
-            <Key>
-              <Single Type="System.Guid">829a18f2-c514-4f6e-9634-1df173429203</Single>
-            </Key>
-            <Value>
-              <Single Type="{829a18f2-c514-4f6e-9634-1df173429203}" Method="IArchivable">
-                <Dictionary Type="{fa2ee218-a39b-4b6d-b249-49dbddbd168a}" Name="ParentObjects">
-                  <Entry>
-                    <Key>
-                      <Single Type="System.Guid">d9b2b2cc-ea99-4c3b-aa42-1e5c49e65b84</Single>
-                    </Key>
-                    <Value>
-                      <Single Type="System.Guid">35666114-8ece-4e05-bfe8-5deb307e26f3</Single>
-                    </Value>
-                  </Entry>
-                </Dictionary>
-              </Single>
-            </Value>
-          </Entry>
-        </Dictionary>
-        <Single Name="TypeGuid" Type="System.Guid">ffbfa93a-b94d-45fc-a329-229860183b1d</Single>
-        <Array Name="EmbeddedTypeGuids" Type="System.Guid">
-          <Single Type="System.Guid">a9ed5b7e-75c5-4651-af16-d2c27e98cb94</Single>
-        </Array>
-        <Single Name="Timestamp" Type="long">639078218512047910</Single>
-      </Single>
-      <Single Name="Object" Type="{ffbfa93a-b94d-45fc-a329-229860183b1d}" Method="IArchivable">
-        <Single Name="Interface" Type="{a9ed5b7e-75c5-4651-af16-d2c27e98cb94}" Method="IArchivable">
-          <Single Name="TextDocument" Type="{f3878285-8e4f-490b-bb1b-9acbb7eb04db}" Method="IArchivable">
-            <Single Name="TextBlobForSerialisation" Type="string">{attribute 'qualified_only'}
-VAR_GLOBAL CONSTANT
-
-    // Parâmetros do sistema
-    SOFTVERSION          		: UINT := 21;   				// Versão da aplicação
-	DATAAPLICATION				: DATE := DATE#2025-12-05;		// Data da aplicação
-	NMAXINVERSORES				: UINT := 30;					// Capacidade máxima de inversores
-	TIPOSINVERSORES				: UINT := 8;					// total de inversores diferentes que podem estar presentes
-	NDATASESPECIAIS 			: UINT := 48; 					// Quantidade de datas especiais disponíveis ao todo (para 10 anos)
-	TIMEZONEOFFSET				: DINT := -3; 			
-    CYCLE_TIME_MS				: UDINT := 1000;  				// tempo de ciclo de controle
-	CYCLE_TIME_TOLERANCE		: UDINT := 1100;  				// tolerancia de ultrapassagem para tempo de ciclo de controle de 10%
-	MAX_Meas_MODBUS_ERROS		: UDINT := 0;					// quantidade de erros permitido na leitura do medidor
-	MAX_Meas_MODBUS_TIMEOUTS	: UDINT := 0;					// quantidade de timeouts permitido na leitura do medidor
-
-	
-END_VAR
-
-VAR_GLOBAL
-	timestampUTC				: UDINT;
-	Result 						: RTS_IEC_RESULT;
-  	ControlCycle    			: REAL;            					// Tempo de ciclo de controle em SEGUNDOS (ex: 1.0 = 1 segundo)
-	uMachineState				: E_MachineState;
-	fbEventLog 					: FB_EventLog;						// Function Block de registro de eventos 
-	
-	// Quantidade de inversores por canal
-	MAX_CH1_MODBUS_ERROS		: UDINT := 0;						// &lt; 50% da quantidade de inversores sem ir para FAIL
-	MAX_CH1_MODBUS_TIMEOUTS		: UDINT := 0;						// &lt; 50% da quantidade de inversores sem ir para FAIL
-	MAX_CH2_MODBUS_ERROS		: UDINT := 0;						// &lt; 50% da quantidade de inversores sem ir para FAIL
-	MAX_CH2_MODBUS_TIMEOUTS		: UDINT := 0;						// &lt; 50% da quantidade de inversores sem ir para FAIL
-	NInversoresCOM01    		: UINT :=0;
-	NInversoresCOM02    		: UINT :=0;
-	
-	// Saidas digitais
-  	K1_out  					: BOOL;   							// DI X5_1 - K1 - controle permissivo
-	K2_out						: BOOL;								// DI X5_2 - K2 - controle trip
-  	K3RedOut					: BOOL;								// DI X5_3 - nada pronto - acende vermelho
-  	K4YellowOut  				: BOOL;   							// DI X5_4 - K2 aberto - acende amarelo
-  	K5GreenOut  				: BOOL;   							// DI X5_5 - K2 fechou - acende verde
-	K7OkOut  					: BOOL;   							// DI X5_7 - sinaliza ok
-	K8ErroOut  					: BOOL;   							// DI X5_8 - sinaliza erro
-		
-	// Entredas digitais
-	K1_in        				: BOOL;                				// DI X12_1 - contato auxliar de K1
-  	K2_in        				: BOOL;                				// DI X12_2 - contato auxliar de K2
-
-    //    Medições (REAL) - Tensões (V), Correntes (A), Potências Ativas (W), Potências Reativas (var), PF (adimensional, sinal: + indutivo, - capacitivo)
-	
-    Ua  			: REAL := 0.0; // Tensão de fase A   - 2006H - Tensão de fase A em Volts (x 0,1 V)
-    Ub  			: REAL := 0.0; // Tensão de fase B   - 2008H - Tensão de fase B em Volts (x 0,1 V)
-    Uc  			: REAL := 0.0; // Tensão de fase C   - 200AH - Tensão de fase C em Volts (x 0,1 V)
-	
-	Ia    			: REAL 	:= 0.0; // 200CH - Corrente de fase A em A (x 0,001 A) 
-	Ib    			: REAL 	:= 0.0; // 200EH - Corrente de fase B em A (x 0,001 A) 
-	Ic    			: REAL 	:= 0.0; // 2010H - Corrente de fase C em A (x 0,001 A) 
-	
-	Pt    			: REAL 	:= 0.0; // 2012H - Potencia ativa combinada em kW (x 0.1 para W, x 0.0001 para kW)
-	Pa    			: REAL 	:= 0.0; // 2014H - Potencia ativa fase A 	em kW (x 0.1 para W, x 0.0001 para kW)
-	Pb    			: REAL 	:= 0.0; // 2016H - Potencia ativa fase B 	em kW (x 0.1 para W, x 0.0001 para kW)
-	Pc    			: REAL 	:= 0.0; // 2018H - Potencia ativa fase C    em kW (x 0.1 para W, x 0.0001 para kW)
-
-	Qt    			: REAL 	:= 0.0; // 201AH - Potencia reativa combinada em kvar (x 0.1 para var, x 0.0001 para kvar)
-	Qa    			: REAL 	:= 0.0; // 201CH - Potencia reativa fase A	 em kvar (x 0.1 para var, x 0.0001 para kvar)
-	Qb    			: REAL 	:= 0.0; // 201EH - Potencia reativa fase B	 em kvar (x 0.1 para var, x 0.0001 para kvar)
-	Qc    			: REAL 	:= 0.0; // 2020H - Potencia reativa fase C	 em kvar (x 0.1 para var, x 0.0001 para kvar)
-	
-	PFt    			: REAL 	:= 0.0; // 202AH - Fator de potência combinado (número positivo: indutivo, número negativo: capacitivo) (x0,001)
-	PFa    			: REAL 	:= 0.0; // 202CH - Fator de potência de fase A (número positivo: indutivo, número negativo: capacitivo) (x0,001)
-	PFb    			: REAL 	:= 0.0; // 202EH - Fator de potência de fase B (número positivo: indutivo, número negativo: capacitivo) (x0,001)
-	PFc    			: REAL 	:= 0.0; // 2030H - Fator de potência de fase C (número positivo: indutivo, número negativo: capacitivo) (x0,001)	
-
-    //   COMANDOS E TELEMETRIA - Saídas do Controle 
-	
-	// definição dos inversores dos dois canais de comunicação
-	
-	trigInvCOM100  	: ARRAY[1..15] OF BOOL;
-    pInversores100 	: ARRAY [1..15] OF POINTER TO ModbusSlaveComPort; 				// array de pointers para Inversor01..Inversor15 (apenas ponteiros - não recria instâncias)
-	trigMedidor100 	: BOOL;
-	pMedidor100		: POINTER TO ModbusSlaveComPort;
-	
-	trigInvCOM200  	: ARRAY[1..15] OF BOOL;
-	pInversores200 	: ARRAY [1..15] OF POINTER TO ModbusSlaveComPort; 				// array de pointers para Inversor01..Inversor15 (apenas ponteiros - não recria instâncias)
-	trigMedidor200 	: BOOL;
-	pMedidor200		: POINTER TO ModbusSlaveComPort;
-	
-	// Potencia Total instalada e potencia Aparente Total instalada
-  	InstalledPower 	: REAL; 														// Soma da potência nominal de todos os inversores ativos
-	Q_max_permitido : REAL := 0.0;    												// Q máximo permitido (kvar)
-	InstalledSmax   : REAL; 														// NOVO: Potência Aparente Máxima Total (kVA)	
-	
-	// COMANDOS DE CONTROLE
-	MaxExportLimit 	: REAL;              											// Limite de exportação do scheduler (kW)
-	P_cmd_total_kW 	: REAL;              											// Comando total de P (kW)
-	Q_cmd_total_kvar: REAL;            												// Comando total de Q (kvar)
-	
-    // Telemetria: Setpoint atual da agenda (antes das proteções)
-    TotalPowerPercent : REAL;
-
-    // Telemetria: Potência Reativa total desejada (kVA)
-    TotalReactivePower : REAL;
-
-    // Telemetria: Valores efetivos calculados para cada inversor
-    P_inv_kW     	: ARRAY[1..NMAXINVERSORES] OF REAL; 							// valor de setpoint de potencia ativa em kW
-	P_inv_Percent 	: ARRAY[1..NMAXINVERSORES] OF REAL; 							// valor de setpoint de potencia ativa em percentual do nominal
-    Q_inv_kvar    	: ARRAY[1..NMAXINVERSORES] OF REAL; 							// valor de setpoint de potencia reativa em kVA
-    PF_inv 			: ARRAY[1..NMAXINVERSORES] OF REAL; 							// valor do fator de potencia de cada inversor (deve ser 0,92 para todos)
-	P_inv_limit 	: ARRAY[1..NMAXINVERSORES] OF REAL; 							// valor limite de potencia ativa com base na SMAX de cada um
-	
-	// Margem de segurança para compensar erro de TC perto de zero, o sistema tentará manter importação mínima garantido que não haja exportação
-	SafetyMargin_pct: REAL :=0.03;
-	TC_Power_kW		: REAL := 0.0; // deve ser configurado como 3% da potencia total sob controle pelo TC
-	
-	// ════════════════════════════════════════════════════════════════
-	// DIAGNÓSTICO DE PF
-	// ════════════════════════════════════════════════════════════════
-	Q_available_max : REAL;             											// Q máximo disponível (kvar)
-	PF_effective 	: REAL;                											// PF efetivo resultante
-	PFErro 			: BOOL;                   										// TRUE = PF &lt; 0.92 não atingível (banco de capacitores)
-    
-	// ════════════════════════════════════════════════════════════════
-    // DIAGNÓSTICO DE FATOR DE POTÊNCIA
-    // ════════════════════════════════════════════════════════════════
-    
-    // Status geral
-    PF_target : REAL := 0.92;                   // PF alvo (mínimo aceitável)
-    PF_measured : REAL;                         // PF medido no ponto de conexão
-    PF_achieved : REAL;                         // PF efetivamente alcançado após compensação
-    PF_OK : BOOL;                               // TRUE = PF ≥ 0.92
-    
-    // Potências
-    P_generated_kW : REAL;                      // P total gerado pelos inversores
-    P_allocated_kW : REAL;                      // P efetivamente alocado
-    Q_measured_kvar : REAL;                     // Q medido no ponto de conexão (carga)
-    Q_required_kvar : REAL;                     // Q necessário para atingir PF ≥ 0.92
-    Q_commanded_kvar : REAL;                    // Q comandado pelo FB_PIQ
-    Q_available_kvar : REAL;                    // Q que inversores conseguem fornecer
-    Q_allocated_kvar : REAL;                    // Q efetivamente alocado
-    Q_deficit_kvar : REAL;                      // Déficit de Q (se &gt; 0, falta Q)
-    
-    // Capacidade dos inversores
-    S_total_available_kVA : REAL;               // S total disponível (soma de todos inversores)
-    S_total_used_kVA : REAL;                    // S total utilizado
-    S_utilization_pct : REAL;                   // % de utilização de S
-    Q_capacity_total_kvar : REAL;               // Capacidade total de Q dos inversores (atual)
-    Q_utilization_pct : REAL;                   // % de utilização de Q
-    
-    // Diagnóstico e recomendações
-    Q_deficit_percent : REAL;                   // Déficit de Q em % do necessário
-    Capacitor_bank_size_kvar : REAL;            // Tamanho recomendado de banco de capacitores
-    Capacitor_bank_recommended : BOOL;          // TRUE = Recomenda banco de capacitores
-    PF_alarm_code : UINT;                       // Código de alarme (0=OK, 1=Aviso, 2=Crítico)
-    
-    // Histórico (opcional)
-    PF_min_24h : REAL := 1.0;                   // PF mínimo nas últimas 24h
-    PF_avg_24h : REAL := 1.0;                   // PF médio nas últimas 24h
-    Q_deficit_max_24h : REAL;                   // Déficit máximo de Q nas últimas 24h
-    PF_alarm_count_24h : UDINT;                 // Quantidade de alarmes nas últimas 24h
-    
-    // Inversores individuais (diagnóstico detalhado)
-    Inv_S_utilization : ARRAY[1..NMAXINVERSORES] OF REAL;  // % S usado por inversor
-    Inv_Q_available : ARRAY[1..NMAXINVERSORES] OF REAL;    // Q disponível por inversor (kvar)
-    Inv_limited : ARRAY[1..NMAXINVERSORES] OF BOOL;        // TRUE = Inversor limitado por S	
-END_VAR
-    
-</Single>
-            <Single Name="LineInfoPersistence" Type="string">7e0139c1-8265-48c9-8ebe-44083548a268_Decl_LineIds</Single>
-          </Single>
-        </Single>
-        <Null Name="NetVarProperties" />
-        <Single Name="ParameterList" Type="bool">False</Single>
-        <Single Name="AddAttributeSubsequent" Type="bool">False</Single>
-      </Single>
-      <Single Name="ParentSVNodeGuid" Type="System.Guid">35666114-8ece-4e05-bfe8-5deb307e26f3</Single>
-      <Array Name="Path" Type="string">
-        <Single Type="string">Dispositivo</Single>
-        <Single Type="string">PLC Logic</Single>
-        <Single Type="string">Application</Single>
-        <Single Type="string">Variaveis</Single>
-      </Array>
-      <Single Name="Index" Type="int">-1</Single>
-    </Single>
-    <Single Type="{6198ad31-4b98-445c-927f-3258a0e82fe3}" Method="IArchivable">
-      <Single Name="IsRoot" Type="bool">True</Single>
-      <Single Name="MetaObject" Type="{81297157-7ec9-45ce-845e-84cab2b88ade}" Method="IArchivable">
-        <Single Name="Guid" Type="System.Guid">050af149-128d-4073-bd86-7bba8f07880e</Single>
-        <Single Name="ParentGuid" Type="System.Guid">c9695764-b6c7-43f8-889e-aafa7558d868</Single>
-        <Single Name="Name" Type="string">GVL_Persis</Single>
-        <Dictionary Type="{2c41fa04-1834-41c1-816e-303c7aa2c05b}" Name="Properties">
-          <Entry>
-            <Key>
-              <Single Type="System.Guid">829a18f2-c514-4f6e-9634-1df173429203</Single>
-            </Key>
-            <Value>
-              <Single Type="{829a18f2-c514-4f6e-9634-1df173429203}" Method="IArchivable">
-                <Dictionary Type="{fa2ee218-a39b-4b6d-b249-49dbddbd168a}" Name="ParentObjects">
-                  <Entry>
-                    <Key>
-                      <Single Type="System.Guid">d9b2b2cc-ea99-4c3b-aa42-1e5c49e65b84</Single>
-                    </Key>
-                    <Value>
-                      <Single Type="System.Guid">35666114-8ece-4e05-bfe8-5deb307e26f3</Single>
-                    </Value>
-                  </Entry>
-                </Dictionary>
-              </Single>
-            </Value>
-          </Entry>
-        </Dictionary>
-        <Single Name="TypeGuid" Type="System.Guid">261bd6e6-249c-4232-bb6f-84c2fbeef430</Single>
-        <Array Name="EmbeddedTypeGuids" Type="System.Guid">
-          <Single Type="System.Guid">a9ed5b7e-75c5-4651-af16-d2c27e98cb94</Single>
-        </Array>
-        <Single Name="Timestamp" Type="long">639078132322835988</Single>
-      </Single>
-      <Single Name="Object" Type="{261bd6e6-249c-4232-bb6f-84c2fbeef430}" Method="IArchivable">
-        <Null Name="persvarlist" />
-        <Single Name="Interface" Type="{a9ed5b7e-75c5-4651-af16-d2c27e98cb94}" Method="IArchivable">
-          <Single Name="TextDocument" Type="{f3878285-8e4f-490b-bb1b-9acbb7eb04db}" Method="IArchivable">
-            <Single Name="TextBlobForSerialisation" Type="string">{attribute 'qualified_only'}
-VAR_GLOBAL PERSISTENT RETAIN
-
-    // CONFIGURAÇÕES DO SISTEMA (Dados que não podem ser perdidos no desligamento)
-    
-	// Definição do medidor a ser usado
-	MeasDeviceType 		: E_MeasDeviceType := E_MeasDeviceType.CHINT_DTSU666;
-    
-    // Potência nominal (kW) por tipo
-    InvActivePower 		: ARRAY[1..GVL_Main.NMAXINVERSORES] OF REAL; 		// kW
-    // Potência Aparente Máxima (kVA) por tipo 
-    InvSmaxPower 		: ARRAY[1..GVL_Main.NMAXINVERSORES] OF REAL;		// kVA
-
-    // --- Parâmetros de Controle de Exportação ---
-    PowerMode 			: UINT := 2;      								// 0=Total, 1=Por Fase, 2=Ambos
-	OperationMode		: BOOL := TRUE;									// FALSE=Export Control  TRUE=Zero Grid
-	ControlMode			: UINT := 1;									// 0 = manual  1 = automatico (PI ativo)
-    TotALARMaxExport_kW : REAL := 0; 									// Limite físico total (kW)
-    PhaseMaxExport_kW 	: REAL := 0; 									// Limite físico por fase (kW)
-
-    (* 
-	Regra prática para GD solar: Ti entre 5s e 20s. Mais rápido pode oscilar com a latência Modbus. 
-	Mais lento perde capacidade de compensar nuvens passando.
-	Ti é o Tempo Integral do controlador PI, também chamado de tempo de reset.
-	Relação Ki= Kp / Ti   Então se você tem Kp = 1.0 e Ti = 10s =&gt; Ki=1.0/10 = 0.1 (por segundo)
-	Na prática para seu sistema:
-	Ti pequeno (ex: 2s) → integral age rápido → mais agressivo → risco de oscilação
-	Ti grande (ex: 30s) → integral age devagar → mais conservador → lento para corrigir erro estacionário
-	Ti = 10s → o controlador elimina o erro estacionário em aproximadamente 30 a 40 segundos (≈ 3-4 × Ti)
-	Resumo em uma frase:
-	Ti = 10s é "quanto tempo o integrador leva para alcançar a mesma força que o proporcional já deu instantaneamente".
-	*)
-	
-	// --- Controle Droop (Potência Ativa) ---
-	Droop_Enable     	: BOOL := TRUE;      							// Habilita droop
-	K_Droop          	: REAL := 0.15;      							// kW/kW  (ex.: 0.05 = 5% de ganho)
-	Deadband_Droop   	: REAL := 2.0;       							// % (erro menor não gera droop)
-	Droop_Max        	: REAL := 0.4;       							// Fração da potência instalada (ex.: 0.6 = 60%)
-	
-	// --- Parâmetros do Controlador PI (Potência Ativa) ---
-    Kp_P           		: REAL := 0.25;									// Recomendado: 0.1 a 1.0
-																	    // Maior → resposta mais rápida, risco de oscilação
-																	    // Menor → mais suave, mas mais lento
-    Ki_P           		: REAL := 0.02;									// Recomendado: 0.02 a 0.1 - Com 1s de ciclo e tempo morto ~1,2–1,6s, integral muito alto oscila.
-																		// Com T=1s: constante de tempo integral Ti = Kp/Ki = 12,5s
-																	    // Significado: elimina erro estacionário em ~10 segundos
-																	    // NUNCA &gt; 0.2 com T=1s (oscilação garantida)
-	RampUp_P 			: REAL := 15.0;           						// Rampa de subida (kW/s) - limitar a 15-20 kW/s por causa do sweep de setpoints nos inversores
-	RampDown_P 			: REAL := 20.0;         						// Rampa de descida (kW/s) - RampDown_P ≤ 20–30 kW/s
-    Deadband_P  		: REAL := 1.0;  								// % da potência instalada (ex: 1.0 = 1%)
-	
-    // --- Configuração de Fator de Potência (PF) e Reativos (Q) ---
-    PF_target       	: REAL := 0.92; 								// Alvo |PF|
-	PF_sign				: REAL := 1.0;
-    // Parâmetros do PI de Correção de Q (Feedforward + Feedback)
-    Kp_Q           		: REAL := 50.0;									// Recomendado: 20.0 a 100.0 kvar/pu_PF
-																	    // Unidade: kvar por unidade de erro de PF
-																	    // Ex: erro PF = 0.02 → P_term = 50 * 0.02 = 1.0 kvar
-    Ki_Q           		: REAL := 5.0;									// Recomendado: 2.0 a 10.0 kvar/(pu_PF·s
-																	    // Com T=1s: Ti = Kp/Ki = 10s =&gt; elimina erro em ~30-40s
-																	    // Significado: corrige PF em ~10 segundos	
-	RampUp_Q 			: REAL := 50.0;            						// Rampa de subida (kvar/s)
-	RampDown_Q 			: REAL := 50.0;          						// Rampa de descida (kvar/s)
-	Deadband_Q 			: REAL := 0.01;          						// Zona morta de PF (ex: 0.01 = ±0.01) — padrão para GD
-
-    // --- Histerese de Habilitação ---
-    HysteresisOn	   	: REAL := 0.01; 								// Liga controle acima de 1%
-    HysteresisOff		: REAL := 0.01; 								// Desliga abaixo de 1%
-		
-    // --- Agenda Semanal (7 dias x 24 horas) e Datas Especiais
-	bHorarioVerao 		: BOOL:= FALSE;									// se TRUE  = Horário de Verão Ativo (+1h)
-    WeekSchedule_kW 	: ARRAY[1..7, 1..24] OF REAL; 					// (1=Dom 2=Seg 3=Ter 4=Quarta 5=Quinta 6=Sexta 7=Sábado) em kW
-    DatasEspeciais   	: ARRAY[1..GVL_Main.NDATASESPECIAIS] OF DATE;		// inicializa com zeros
-	SpecialDaySchedule 	: ARRAY[1..GVL_Main.NDATASESPECIAIS] OF REAL;		// cada data especial tem apenas um valor de potencia maxima valido para o dia inteiro
-
-    // ════════════════════════════════════════════════════════════════
-    // LIMITES FÍSICOS DO SISTEMA (Baseados no Transformador e Rede)
-    // ════════════════════════════════════════════════════════════════
-	// SafetyMargin_kW = SafetyMargin_pct × TC_Power_kW / 100 - Margem de segurança para compensar erro de TC perto de zero
-	SafetyMargin_pct 	: REAL := 3.0;     								// Percentual do TC (%)
-	// Exemplo 1: TC de 500 A, Tensão 380 V =&gt; P_TC = √3 × V × I = 1.732 × 380 × 500 = 329 kW
-	TC_Power_kW			: REAL := 0.0; 									// deve ser configurado como 3% da potencia total sob controle pelo TC
-	
-	VMIN 				: REAL := 7170;  // Volts - tensão de fase minima para tensão primária de 13,8kV
-    VMAX 				: REAL := 8370;  // Volts - tensão de fase máxima para tensão primária de 13,8kV
-    IMAX 				: REAL := 125.0;  // Amperes - corrente de linha - para potencia de usina de 3MW erro transformador 5%
-    PMAX 				: REAL := 3200.0; // kW (Demanda contratada + 10% de margem)
-	QMAX				: REAL := 2400.0; // kvar tan(acos(0.8)) × Pmax
-	// τ = tempo para atingir ~63% do valor final e T_scan = período de amostragem (1s no seu caso)
-	// α = T_scan / (τ + T_scan)  =&gt; Alpha=0.5 =&gt; 3 segundos para atingir 95% do valor final
-	// Item 2.1: "Responder em até 15 segundos a rejeição de carga"
-	// Item 2.2: "Limitar exportação em até 15 segundos"
-	// Nuvens passageiras: variação em 1–5 segundos
-	// Rejeição de carga: instantânea (&lt; 1s)
-	// Ruído de medição: &lt; 100 ms
-	ALPHA				: REAL := 0.25;
-	
-END_VAR</Single>
-            <Single Name="LineInfoPersistence" Type="string">050af149-128d-4073-bd86-7bba8f07880e_Decl_LineIds</Single>
-          </Single>
-        </Single>
-        <Null Name="NetVarProperties" />
-        <Single Name="guidinit" Type="System.Guid">54d416a3-6d1d-4555-9b07-eed66d0755c1</Single>
-        <Single Name="guidcyclic" Type="System.Guid">abaedbf6-9c5f-4a7d-a2f8-bd35e2f34d44</Single>
-        <Single Name="dymmattributecount" Type="int">0</Single>
-      </Single>
-      <Single Name="ParentSVNodeGuid" Type="System.Guid">35666114-8ece-4e05-bfe8-5deb307e26f3</Single>
-      <Array Name="Path" Type="string">
-        <Single Type="string">Dispositivo</Single>
-        <Single Type="string">PLC Logic</Single>
-        <Single Type="string">Application</Single>
-        <Single Type="string">Variaveis</Single>
       </Array>
       <Single Name="Index" Type="int">-1</Single>
     </Single>
@@ -7314,6 +6812,550 @@ END_VAR</Single>
         <Single Type="string">PLC Logic</Single>
         <Single Type="string">Application</Single>
         <Single Type="string">FB Controle</Single>
+      </Array>
+      <Single Name="Index" Type="int">-1</Single>
+    </Single>
+    <Single Type="{6198ad31-4b98-445c-927f-3258a0e82fe3}" Method="IArchivable">
+      <Single Name="IsRoot" Type="bool">False</Single>
+      <Single Name="MetaObject" Type="{81297157-7ec9-45ce-845e-84cab2b88ade}" Method="IArchivable">
+        <Single Name="Guid" Type="System.Guid">3bf7bb7a-8b9b-4000-bb80-a59cd69f90de</Single>
+        <Single Name="ParentGuid" Type="System.Guid">c9695764-b6c7-43f8-889e-aafa7558d868</Single>
+        <Single Name="Name" Type="string">GVL_ALARM_MANAGER</Single>
+        <Dictionary Type="{2c41fa04-1834-41c1-816e-303c7aa2c05b}" Name="Properties">
+          <Entry>
+            <Key>
+              <Single Type="System.Guid">829a18f2-c514-4f6e-9634-1df173429203</Single>
+            </Key>
+            <Value>
+              <Single Type="{829a18f2-c514-4f6e-9634-1df173429203}" Method="IArchivable">
+                <Dictionary Type="{fa2ee218-a39b-4b6d-b249-49dbddbd168a}" Name="ParentObjects">
+                  <Entry>
+                    <Key>
+                      <Single Type="System.Guid">d9b2b2cc-ea99-4c3b-aa42-1e5c49e65b84</Single>
+                    </Key>
+                    <Value>
+                      <Single Type="System.Guid">35666114-8ece-4e05-bfe8-5deb307e26f3</Single>
+                    </Value>
+                  </Entry>
+                </Dictionary>
+              </Single>
+            </Value>
+          </Entry>
+        </Dictionary>
+        <Single Name="TypeGuid" Type="System.Guid">ffbfa93a-b94d-45fc-a329-229860183b1d</Single>
+        <Array Name="EmbeddedTypeGuids" Type="System.Guid">
+          <Single Type="System.Guid">a9ed5b7e-75c5-4651-af16-d2c27e98cb94</Single>
+        </Array>
+        <Single Name="Timestamp" Type="long">639079067819414569</Single>
+      </Single>
+      <Single Name="Object" Type="{ffbfa93a-b94d-45fc-a329-229860183b1d}" Method="IArchivable">
+        <Single Name="Interface" Type="{a9ed5b7e-75c5-4651-af16-d2c27e98cb94}" Method="IArchivable">
+          <Single Name="TextDocument" Type="{f3878285-8e4f-490b-bb1b-9acbb7eb04db}" Method="IArchivable">
+            <Single Name="TextBlobForSerialisation" Type="string">{attribute 'qualified_only'}
+VAR_GLOBAL
+    // ─────────────────────────────────────────────────────────
+    // ALARM MANAGER FLAGS (condições booleanas)
+    // ─────────────────────────────────────────────────────────
+
+	// Falhas na inicialização 
+	CRIT_SERIAL_INIT_FAIL			: BOOL := FALSE;	// Critico - Falha para iniciar as seriais
+	CRIT_K1_TIMEOUT 				: BOOL := FALSE;    // Critico - falha no acionamento de K1
+	CRIT_K2_TIMEOUT 				: BOOL := FALSE;    // Critico - falha no acionamento de K2
+
+    // Medição / Medidor
+    ALARM_MEAS_MODBUS_TIMEOUT      	: BOOL := FALSE;  	// timeout de leitura (READ)
+    ALARM_MEAS_MODBUS_ERRO       	: BOOL := FALSE;  	// xError do medidor (READ)
+    ALARM_MEAS_FROZEN	            : BOOL := FALSE;  	// diagnosticCode = A900 (se aplicável)
+    ALARM_MEAS_USING_LAST_VALUEU	: BOOL := FALSE;  	// bPoucosErros=TRUE e bDadosOK=FALSE
+	ALARM_MEAS_RANGE_ERROR    		: BOOL := FALSE;    // Warning: Valor fora de faixa
+    ALARM_MEAS_XCHECK_FAIL   		: BOOL := FALSE;    // Warning: Validação cruzada 
+    CRIT_MEAS_PERSISTENT_FAIL		: BOOL := FALSE;  	// bPoucosErros = FALSE	
+    CRIT_MEAS_MODBUS_TIMEOUT      	: BOOL := FALSE;  	// timeout de leitura (READ) repeticao fora da tolerancia
+    CRIT_MEAS_MODBUS_ERRO       	: BOOL := FALSE;  	// xError do medidor (READ)  repeticao fora da tolerancia
+
+    // Comunicação inversores
+    CRIT_COM_CHANNEL_FAIL           : BOOL := FALSE;  	// falha geral de comunicação → FAIL/STOP
+	CRIT_CH1_MODBUS_TIMEOUT        	: BOOL := FALSE; 	// Canal COM1 TIMEOUT 3x
+    CRIT_CH2_MODBUS_TIMEOUT        	: BOOL := FALSE; 	// Canal COM2 TIMEOUT 3x
+	CRIT_CH1_MODBUS_ERRO	       	: BOOL := FALSE;  	// &gt;50% falhas COM1 no ciclo
+    CRIT_CH2_MODBUS_ERRO        	: BOOL := FALSE;  	// &gt;50% falhas COM2 no ciclo
+
+    // Sistema
+	ALARM_SCAN_OVERRUN        		: BOOL := FALSE;    // Warning: Watchdog de ciclo
+    ALARM_TC_POWER_NOT_SET          : BOOL := FALSE;    // TC_Power_kW = 0 na inicialização
+    CRIT_NO_INVERTERS        		: BOOL := FALSE;    // Error: Nenhum inversor configurado
+    CRIT_RTC_FAIL            		: BOOL := FALSE;    // Error: Falha RTC
+    CRIT_INSTALLED_PWR_ZERO  		: BOOL := FALSE;    // Error: Potência instalada = 0
+	CRIT_INSTALLED_SMAX_ZERO  		: BOOL := FALSE;    // Error: Potência reativa instalada = 0
+	CRIT_SCAN_OVERRUN        		: BOOL := FALSE;    // CRITICO: Watchdog de ciclo 3x	
+
+	
+    // Proteções normativas
+    CRIT_HARDLIMIT_15S       		: BOOL := FALSE;    // Error: P &gt; LPI+10% por &gt;15s
+    CRIT_EXPORT_OVER_LPI_30S   		: BOOL := FALSE;    // Error: P &gt; LPI por &gt;30s
+    CRIT_K2_NOT_OPENED       		: BOOL := FALSE;    // Error: K2 não abriu após trip
+	
+	// Status do sistema
+	ALARM_FAIL_ACTIVE				: BOOL := FALSE;  	// MachineState=FAIL
+    CRIT_STOP_ACTIVE	            : BOOL := FALSE;  	// MachineState=STOP
+	CRIT_SCHEDULE_INDEX_INVALID		: BOOL := FALSE;    // Dia ou hora da semana inválido (CRITICAL)
+	
+    // ── Controle / PF ──
+    ALARM_PF_BELOW_TARGET     		: BOOL := FALSE;    // Warning: PF &lt; 0.92
+    ALARM_PF_CRITICAL         		: BOOL := FALSE;    // Error: PF &lt; 0.92 + Q saturado
+    ALARM_Q_LIMITED_BY_SMAX    		: BOOL := FALSE;    // Info: Q limitado por S
+END_VAR</Single>
+            <Single Name="LineInfoPersistence" Type="string">3bf7bb7a-8b9b-4000-bb80-a59cd69f90de_Decl_LineIds</Single>
+          </Single>
+        </Single>
+        <Null Name="NetVarProperties" />
+        <Single Name="ParameterList" Type="bool">False</Single>
+        <Single Name="AddAttributeSubsequent" Type="bool">False</Single>
+      </Single>
+      <Single Name="ParentSVNodeGuid" Type="System.Guid">35666114-8ece-4e05-bfe8-5deb307e26f3</Single>
+      <Array Name="Path" Type="string">
+        <Single Type="string">Dispositivo</Single>
+        <Single Type="string">PLC Logic</Single>
+        <Single Type="string">Application</Single>
+        <Single Type="string">Variaveis</Single>
+      </Array>
+      <Single Name="Index" Type="int">-1</Single>
+    </Single>
+    <Single Type="{6198ad31-4b98-445c-927f-3258a0e82fe3}" Method="IArchivable">
+      <Single Name="IsRoot" Type="bool">False</Single>
+      <Single Name="MetaObject" Type="{81297157-7ec9-45ce-845e-84cab2b88ade}" Method="IArchivable">
+        <Single Name="Guid" Type="System.Guid">0d2a4d0a-e657-4523-ac59-b440e60d8c75</Single>
+        <Single Name="ParentGuid" Type="System.Guid">c9695764-b6c7-43f8-889e-aafa7558d868</Single>
+        <Single Name="Name" Type="string">GVL_EventLog</Single>
+        <Dictionary Type="{2c41fa04-1834-41c1-816e-303c7aa2c05b}" Name="Properties">
+          <Entry>
+            <Key>
+              <Single Type="System.Guid">829a18f2-c514-4f6e-9634-1df173429203</Single>
+            </Key>
+            <Value>
+              <Single Type="{829a18f2-c514-4f6e-9634-1df173429203}" Method="IArchivable">
+                <Dictionary Type="{fa2ee218-a39b-4b6d-b249-49dbddbd168a}" Name="ParentObjects">
+                  <Entry>
+                    <Key>
+                      <Single Type="System.Guid">d9b2b2cc-ea99-4c3b-aa42-1e5c49e65b84</Single>
+                    </Key>
+                    <Value>
+                      <Single Type="System.Guid">35666114-8ece-4e05-bfe8-5deb307e26f3</Single>
+                    </Value>
+                  </Entry>
+                </Dictionary>
+              </Single>
+            </Value>
+          </Entry>
+        </Dictionary>
+        <Single Name="TypeGuid" Type="System.Guid">ffbfa93a-b94d-45fc-a329-229860183b1d</Single>
+        <Array Name="EmbeddedTypeGuids" Type="System.Guid">
+          <Single Type="System.Guid">a9ed5b7e-75c5-4651-af16-d2c27e98cb94</Single>
+        </Array>
+        <Single Name="Timestamp" Type="long">639075415312493779</Single>
+      </Single>
+      <Single Name="Object" Type="{ffbfa93a-b94d-45fc-a329-229860183b1d}" Method="IArchivable">
+        <Single Name="Interface" Type="{a9ed5b7e-75c5-4651-af16-d2c27e98cb94}" Method="IArchivable">
+          <Single Name="TextDocument" Type="{f3878285-8e4f-490b-bb1b-9acbb7eb04db}" Method="IArchivable">
+            <Single Name="TextBlobForSerialisation" Type="string">{attribute 'qualified_only'}
+// ════════════════════════════════════════════════════════════════════
+// GVL_EventLog — Constantes do sistema de log de eventos
+// ════════════════════════════════════════════════════════════════════
+// Autor: Eng. Principal / Revisão Técnica PPC-GD
+// Plataforma: WAGO CC100 (751-9402) / CODESYS V3.5 SP21 Patch 4
+//
+// DIMENSIONAMENTO:
+//   64 entradas × 28 bytes = ~1.792 bytes de RETAIN
+//   WAGO CC100 possui ~32 kB RETAIN → uso &lt; 6%
+//   Com ~1 evento/min, cobre &gt;1 hora de histórico completo
+//   Com taxa de pico (~10 eventos em cascata), ainda retém &gt;6 min
+// ════════════════════════════════════════════════════════════════════
+{attribute 'qualified_only'}
+VAR_GLOBAL CONSTANT
+    MAX_EVENT_ENTRIES   : UINT := 64;   // Tamanho do ring buffer (potência de 2 facilita debug)
+END_VAR</Single>
+            <Single Name="LineInfoPersistence" Type="string">0d2a4d0a-e657-4523-ac59-b440e60d8c75_Decl_LineIds</Single>
+          </Single>
+        </Single>
+        <Null Name="NetVarProperties" />
+        <Single Name="ParameterList" Type="bool">False</Single>
+        <Single Name="AddAttributeSubsequent" Type="bool">False</Single>
+      </Single>
+      <Single Name="ParentSVNodeGuid" Type="System.Guid">35666114-8ece-4e05-bfe8-5deb307e26f3</Single>
+      <Array Name="Path" Type="string">
+        <Single Type="string">Dispositivo</Single>
+        <Single Type="string">PLC Logic</Single>
+        <Single Type="string">Application</Single>
+        <Single Type="string">Variaveis</Single>
+      </Array>
+      <Single Name="Index" Type="int">-1</Single>
+    </Single>
+    <Single Type="{6198ad31-4b98-445c-927f-3258a0e82fe3}" Method="IArchivable">
+      <Single Name="IsRoot" Type="bool">False</Single>
+      <Single Name="MetaObject" Type="{81297157-7ec9-45ce-845e-84cab2b88ade}" Method="IArchivable">
+        <Single Name="Guid" Type="System.Guid">7e0139c1-8265-48c9-8ebe-44083548a268</Single>
+        <Single Name="ParentGuid" Type="System.Guid">c9695764-b6c7-43f8-889e-aafa7558d868</Single>
+        <Single Name="Name" Type="string">GVL_Main</Single>
+        <Dictionary Type="{2c41fa04-1834-41c1-816e-303c7aa2c05b}" Name="Properties">
+          <Entry>
+            <Key>
+              <Single Type="System.Guid">829a18f2-c514-4f6e-9634-1df173429203</Single>
+            </Key>
+            <Value>
+              <Single Type="{829a18f2-c514-4f6e-9634-1df173429203}" Method="IArchivable">
+                <Dictionary Type="{fa2ee218-a39b-4b6d-b249-49dbddbd168a}" Name="ParentObjects">
+                  <Entry>
+                    <Key>
+                      <Single Type="System.Guid">d9b2b2cc-ea99-4c3b-aa42-1e5c49e65b84</Single>
+                    </Key>
+                    <Value>
+                      <Single Type="System.Guid">35666114-8ece-4e05-bfe8-5deb307e26f3</Single>
+                    </Value>
+                  </Entry>
+                </Dictionary>
+              </Single>
+            </Value>
+          </Entry>
+        </Dictionary>
+        <Single Name="TypeGuid" Type="System.Guid">ffbfa93a-b94d-45fc-a329-229860183b1d</Single>
+        <Array Name="EmbeddedTypeGuids" Type="System.Guid">
+          <Single Type="System.Guid">a9ed5b7e-75c5-4651-af16-d2c27e98cb94</Single>
+        </Array>
+        <Single Name="Timestamp" Type="long">639078218512047910</Single>
+      </Single>
+      <Single Name="Object" Type="{ffbfa93a-b94d-45fc-a329-229860183b1d}" Method="IArchivable">
+        <Single Name="Interface" Type="{a9ed5b7e-75c5-4651-af16-d2c27e98cb94}" Method="IArchivable">
+          <Single Name="TextDocument" Type="{f3878285-8e4f-490b-bb1b-9acbb7eb04db}" Method="IArchivable">
+            <Single Name="TextBlobForSerialisation" Type="string">{attribute 'qualified_only'}
+VAR_GLOBAL CONSTANT
+
+    // Parâmetros do sistema
+    SOFTVERSION          		: UINT := 21;   				// Versão da aplicação
+	DATAAPLICATION				: DATE := DATE#2025-12-05;		// Data da aplicação
+	NMAXINVERSORES				: UINT := 30;					// Capacidade máxima de inversores
+	TIPOSINVERSORES				: UINT := 8;					// total de inversores diferentes que podem estar presentes
+	NDATASESPECIAIS 			: UINT := 48; 					// Quantidade de datas especiais disponíveis ao todo (para 10 anos)
+	TIMEZONEOFFSET				: DINT := -3; 			
+    CYCLE_TIME_MS				: UDINT := 1000;  				// tempo de ciclo de controle
+	CYCLE_TIME_TOLERANCE		: UDINT := 1100;  				// tolerancia de ultrapassagem para tempo de ciclo de controle de 10%
+	MAX_Meas_MODBUS_ERROS		: UDINT := 0;					// quantidade de erros permitido na leitura do medidor
+	MAX_Meas_MODBUS_TIMEOUTS	: UDINT := 0;					// quantidade de timeouts permitido na leitura do medidor
+
+	
+END_VAR
+
+VAR_GLOBAL
+	timestampUTC				: UDINT;
+	Result 						: RTS_IEC_RESULT;
+  	ControlCycle    			: REAL;            					// Tempo de ciclo de controle em SEGUNDOS (ex: 1.0 = 1 segundo)
+	uMachineState				: E_MachineState;
+	fbEventLog 					: FB_EventLog;						// Function Block de registro de eventos 
+	
+	// Quantidade de inversores por canal
+	MAX_CH1_MODBUS_ERROS		: UDINT := 0;						// &lt; 50% da quantidade de inversores sem ir para FAIL
+	MAX_CH1_MODBUS_TIMEOUTS		: UDINT := 0;						// &lt; 50% da quantidade de inversores sem ir para FAIL
+	MAX_CH2_MODBUS_ERROS		: UDINT := 0;						// &lt; 50% da quantidade de inversores sem ir para FAIL
+	MAX_CH2_MODBUS_TIMEOUTS		: UDINT := 0;						// &lt; 50% da quantidade de inversores sem ir para FAIL
+	NInversoresCOM01    		: UINT :=0;
+	NInversoresCOM02    		: UINT :=0;
+	
+	// Saidas digitais
+  	K1_out  					: BOOL;   							// DI X5_1 - K1 - controle permissivo
+	K2_out						: BOOL;								// DI X5_2 - K2 - controle trip
+  	K3RedOut					: BOOL;								// DI X5_3 - nada pronto - acende vermelho
+  	K4YellowOut  				: BOOL;   							// DI X5_4 - K2 aberto - acende amarelo
+  	K5GreenOut  				: BOOL;   							// DI X5_5 - K2 fechou - acende verde
+	K7OkOut  					: BOOL;   							// DI X5_7 - sinaliza ok
+	K8ErroOut  					: BOOL;   							// DI X5_8 - sinaliza erro
+		
+	// Entredas digitais
+	K1_in        				: BOOL;                				// DI X12_1 - contato auxliar de K1
+  	K2_in        				: BOOL;                				// DI X12_2 - contato auxliar de K2
+
+    //    Medições (REAL) - Tensões (V), Correntes (A), Potências Ativas (W), Potências Reativas (var), PF (adimensional, sinal: + indutivo, - capacitivo)
+	
+    Ua  			: REAL := 0.0; // Tensão de fase A   - 2006H - Tensão de fase A em Volts (x 0,1 V)
+    Ub  			: REAL := 0.0; // Tensão de fase B   - 2008H - Tensão de fase B em Volts (x 0,1 V)
+    Uc  			: REAL := 0.0; // Tensão de fase C   - 200AH - Tensão de fase C em Volts (x 0,1 V)
+	
+	Ia    			: REAL 	:= 0.0; // 200CH - Corrente de fase A em A (x 0,001 A) 
+	Ib    			: REAL 	:= 0.0; // 200EH - Corrente de fase B em A (x 0,001 A) 
+	Ic    			: REAL 	:= 0.0; // 2010H - Corrente de fase C em A (x 0,001 A) 
+	
+	Pt    			: REAL 	:= 0.0; // 2012H - Potencia ativa combinada em kW (x 0.1 para W, x 0.0001 para kW)
+	Pa    			: REAL 	:= 0.0; // 2014H - Potencia ativa fase A 	em kW (x 0.1 para W, x 0.0001 para kW)
+	Pb    			: REAL 	:= 0.0; // 2016H - Potencia ativa fase B 	em kW (x 0.1 para W, x 0.0001 para kW)
+	Pc    			: REAL 	:= 0.0; // 2018H - Potencia ativa fase C    em kW (x 0.1 para W, x 0.0001 para kW)
+
+	Qt    			: REAL 	:= 0.0; // 201AH - Potencia reativa combinada em kvar (x 0.1 para var, x 0.0001 para kvar)
+	Qa    			: REAL 	:= 0.0; // 201CH - Potencia reativa fase A	 em kvar (x 0.1 para var, x 0.0001 para kvar)
+	Qb    			: REAL 	:= 0.0; // 201EH - Potencia reativa fase B	 em kvar (x 0.1 para var, x 0.0001 para kvar)
+	Qc    			: REAL 	:= 0.0; // 2020H - Potencia reativa fase C	 em kvar (x 0.1 para var, x 0.0001 para kvar)
+	
+	PFt    			: REAL 	:= 0.0; // 202AH - Fator de potência combinado (número positivo: indutivo, número negativo: capacitivo) (x0,001)
+	PFa    			: REAL 	:= 0.0; // 202CH - Fator de potência de fase A (número positivo: indutivo, número negativo: capacitivo) (x0,001)
+	PFb    			: REAL 	:= 0.0; // 202EH - Fator de potência de fase B (número positivo: indutivo, número negativo: capacitivo) (x0,001)
+	PFc    			: REAL 	:= 0.0; // 2030H - Fator de potência de fase C (número positivo: indutivo, número negativo: capacitivo) (x0,001)	
+
+    //   COMANDOS E TELEMETRIA - Saídas do Controle 
+	
+	// definição dos inversores dos dois canais de comunicação
+	
+	trigInvCOM100  	: ARRAY[1..15] OF BOOL;
+    pInversores100 	: ARRAY [1..15] OF POINTER TO ModbusSlaveComPort; 				// array de pointers para Inversor01..Inversor15 (apenas ponteiros - não recria instâncias)
+	trigMedidor100 	: BOOL;
+	pMedidor100		: POINTER TO ModbusSlaveComPort;
+	
+	trigInvCOM200  	: ARRAY[1..15] OF BOOL;
+	pInversores200 	: ARRAY [1..15] OF POINTER TO ModbusSlaveComPort; 				// array de pointers para Inversor01..Inversor15 (apenas ponteiros - não recria instâncias)
+	trigMedidor200 	: BOOL;
+	pMedidor200		: POINTER TO ModbusSlaveComPort;
+	
+	// Potencia Total instalada e potencia Aparente Total instalada
+  	InstalledPower 	: REAL; 														// Soma da potência nominal de todos os inversores ativos
+	Q_max_permitido : REAL := 0.0;    												// Q máximo permitido (kvar)
+	InstalledSmax   : REAL; 														// NOVO: Potência Aparente Máxima Total (kVA)	
+	
+	// COMANDOS DE CONTROLE
+	MaxExportLimit 	: REAL;              											// Limite de exportação do scheduler (kW)
+	P_cmd_total_kW 	: REAL;              											// Comando total de P (kW)
+	Q_cmd_total_kvar: REAL;            												// Comando total de Q (kvar)
+	
+    // Telemetria: Setpoint atual da agenda (antes das proteções)
+    TotalPowerPercent : REAL;
+
+    // Telemetria: Potência Reativa total desejada (kVA)
+    TotalReactivePower : REAL;
+
+    // Telemetria: Valores efetivos calculados para cada inversor
+    P_inv_kW     	: ARRAY[1..NMAXINVERSORES] OF REAL; 							// valor de setpoint de potencia ativa em kW
+	P_inv_Percent 	: ARRAY[1..NMAXINVERSORES] OF REAL; 							// valor de setpoint de potencia ativa em percentual do nominal
+    Q_inv_kvar    	: ARRAY[1..NMAXINVERSORES] OF REAL; 							// valor de setpoint de potencia reativa em kVA
+    PF_inv 			: ARRAY[1..NMAXINVERSORES] OF REAL; 							// valor do fator de potencia de cada inversor (deve ser 0,92 para todos)
+	P_inv_limit 	: ARRAY[1..NMAXINVERSORES] OF REAL; 							// valor limite de potencia ativa com base na SMAX de cada um
+	
+	// Margem de segurança para compensar erro de TC perto de zero, o sistema tentará manter importação mínima garantido que não haja exportação
+	SafetyMargin_pct: REAL :=0.03;
+	TC_Power_kW		: REAL := 0.0; // deve ser configurado como 3% da potencia total sob controle pelo TC
+	
+	// ════════════════════════════════════════════════════════════════
+	// DIAGNÓSTICO DE PF
+	// ════════════════════════════════════════════════════════════════
+	Q_available_max : REAL;             											// Q máximo disponível (kvar)
+	PF_effective 	: REAL;                											// PF efetivo resultante
+	PFErro 			: BOOL;                   										// TRUE = PF &lt; 0.92 não atingível (banco de capacitores)
+    
+	// ════════════════════════════════════════════════════════════════
+    // DIAGNÓSTICO DE FATOR DE POTÊNCIA
+    // ════════════════════════════════════════════════════════════════
+    
+    // Status geral
+    PF_target : REAL := 0.92;                   // PF alvo (mínimo aceitável)
+    PF_measured : REAL;                         // PF medido no ponto de conexão
+    PF_achieved : REAL;                         // PF efetivamente alcançado após compensação
+    PF_OK : BOOL;                               // TRUE = PF ≥ 0.92
+    
+    // Potências
+    P_generated_kW : REAL;                      // P total gerado pelos inversores
+    P_allocated_kW : REAL;                      // P efetivamente alocado
+    Q_measured_kvar : REAL;                     // Q medido no ponto de conexão (carga)
+    Q_required_kvar : REAL;                     // Q necessário para atingir PF ≥ 0.92
+    Q_commanded_kvar : REAL;                    // Q comandado pelo FB_PIQ
+    Q_available_kvar : REAL;                    // Q que inversores conseguem fornecer
+    Q_allocated_kvar : REAL;                    // Q efetivamente alocado
+    Q_deficit_kvar : REAL;                      // Déficit de Q (se &gt; 0, falta Q)
+    
+    // Capacidade dos inversores
+    S_total_available_kVA : REAL;               // S total disponível (soma de todos inversores)
+    S_total_used_kVA : REAL;                    // S total utilizado
+    S_utilization_pct : REAL;                   // % de utilização de S
+    Q_capacity_total_kvar : REAL;               // Capacidade total de Q dos inversores (atual)
+    Q_utilization_pct : REAL;                   // % de utilização de Q
+    
+    // Diagnóstico e recomendações
+    Q_deficit_percent : REAL;                   // Déficit de Q em % do necessário
+    Capacitor_bank_size_kvar : REAL;            // Tamanho recomendado de banco de capacitores
+    Capacitor_bank_recommended : BOOL;          // TRUE = Recomenda banco de capacitores
+    PF_alarm_code : UINT;                       // Código de alarme (0=OK, 1=Aviso, 2=Crítico)
+    
+    // Histórico (opcional)
+    PF_min_24h : REAL := 1.0;                   // PF mínimo nas últimas 24h
+    PF_avg_24h : REAL := 1.0;                   // PF médio nas últimas 24h
+    Q_deficit_max_24h : REAL;                   // Déficit máximo de Q nas últimas 24h
+    PF_alarm_count_24h : UDINT;                 // Quantidade de alarmes nas últimas 24h
+    
+    // Inversores individuais (diagnóstico detalhado)
+    Inv_S_utilization : ARRAY[1..NMAXINVERSORES] OF REAL;  // % S usado por inversor
+    Inv_Q_available : ARRAY[1..NMAXINVERSORES] OF REAL;    // Q disponível por inversor (kvar)
+    Inv_limited : ARRAY[1..NMAXINVERSORES] OF BOOL;        // TRUE = Inversor limitado por S	
+END_VAR
+    
+</Single>
+            <Single Name="LineInfoPersistence" Type="string">7e0139c1-8265-48c9-8ebe-44083548a268_Decl_LineIds</Single>
+          </Single>
+        </Single>
+        <Null Name="NetVarProperties" />
+        <Single Name="ParameterList" Type="bool">False</Single>
+        <Single Name="AddAttributeSubsequent" Type="bool">False</Single>
+      </Single>
+      <Single Name="ParentSVNodeGuid" Type="System.Guid">35666114-8ece-4e05-bfe8-5deb307e26f3</Single>
+      <Array Name="Path" Type="string">
+        <Single Type="string">Dispositivo</Single>
+        <Single Type="string">PLC Logic</Single>
+        <Single Type="string">Application</Single>
+        <Single Type="string">Variaveis</Single>
+      </Array>
+      <Single Name="Index" Type="int">-1</Single>
+    </Single>
+    <Single Type="{6198ad31-4b98-445c-927f-3258a0e82fe3}" Method="IArchivable">
+      <Single Name="IsRoot" Type="bool">False</Single>
+      <Single Name="MetaObject" Type="{81297157-7ec9-45ce-845e-84cab2b88ade}" Method="IArchivable">
+        <Single Name="Guid" Type="System.Guid">050af149-128d-4073-bd86-7bba8f07880e</Single>
+        <Single Name="ParentGuid" Type="System.Guid">c9695764-b6c7-43f8-889e-aafa7558d868</Single>
+        <Single Name="Name" Type="string">GVL_Persis</Single>
+        <Dictionary Type="{2c41fa04-1834-41c1-816e-303c7aa2c05b}" Name="Properties">
+          <Entry>
+            <Key>
+              <Single Type="System.Guid">829a18f2-c514-4f6e-9634-1df173429203</Single>
+            </Key>
+            <Value>
+              <Single Type="{829a18f2-c514-4f6e-9634-1df173429203}" Method="IArchivable">
+                <Dictionary Type="{fa2ee218-a39b-4b6d-b249-49dbddbd168a}" Name="ParentObjects">
+                  <Entry>
+                    <Key>
+                      <Single Type="System.Guid">d9b2b2cc-ea99-4c3b-aa42-1e5c49e65b84</Single>
+                    </Key>
+                    <Value>
+                      <Single Type="System.Guid">35666114-8ece-4e05-bfe8-5deb307e26f3</Single>
+                    </Value>
+                  </Entry>
+                </Dictionary>
+              </Single>
+            </Value>
+          </Entry>
+        </Dictionary>
+        <Single Name="TypeGuid" Type="System.Guid">261bd6e6-249c-4232-bb6f-84c2fbeef430</Single>
+        <Array Name="EmbeddedTypeGuids" Type="System.Guid">
+          <Single Type="System.Guid">a9ed5b7e-75c5-4651-af16-d2c27e98cb94</Single>
+        </Array>
+        <Single Name="Timestamp" Type="long">639078132322835988</Single>
+      </Single>
+      <Single Name="Object" Type="{261bd6e6-249c-4232-bb6f-84c2fbeef430}" Method="IArchivable">
+        <Null Name="persvarlist" />
+        <Single Name="Interface" Type="{a9ed5b7e-75c5-4651-af16-d2c27e98cb94}" Method="IArchivable">
+          <Single Name="TextDocument" Type="{f3878285-8e4f-490b-bb1b-9acbb7eb04db}" Method="IArchivable">
+            <Single Name="TextBlobForSerialisation" Type="string">{attribute 'qualified_only'}
+VAR_GLOBAL PERSISTENT RETAIN
+
+    // CONFIGURAÇÕES DO SISTEMA (Dados que não podem ser perdidos no desligamento)
+    
+	// Definição do medidor a ser usado
+	MeasDeviceType 		: E_MeasDeviceType := E_MeasDeviceType.CHINT_DTSU666;
+    
+    // Potência nominal (kW) por tipo
+    InvActivePower 		: ARRAY[1..GVL_Main.NMAXINVERSORES] OF REAL; 		// kW
+    // Potência Aparente Máxima (kVA) por tipo 
+    InvSmaxPower 		: ARRAY[1..GVL_Main.NMAXINVERSORES] OF REAL;		// kVA
+
+    // --- Parâmetros de Controle de Exportação ---
+    PowerMode 			: UINT := 2;      								// 0=Total, 1=Por Fase, 2=Ambos
+	OperationMode		: BOOL := TRUE;									// FALSE=Export Control  TRUE=Zero Grid
+	ControlMode			: UINT := 1;									// 0 = manual  1 = automatico (PI ativo)
+    TotALARMaxExport_kW : REAL := 0; 									// Limite físico total (kW)
+    PhaseMaxExport_kW 	: REAL := 0; 									// Limite físico por fase (kW)
+
+    (* 
+	Regra prática para GD solar: Ti entre 5s e 20s. Mais rápido pode oscilar com a latência Modbus. 
+	Mais lento perde capacidade de compensar nuvens passando.
+	Ti é o Tempo Integral do controlador PI, também chamado de tempo de reset.
+	Relação Ki= Kp / Ti   Então se você tem Kp = 1.0 e Ti = 10s =&gt; Ki=1.0/10 = 0.1 (por segundo)
+	Na prática para seu sistema:
+	Ti pequeno (ex: 2s) → integral age rápido → mais agressivo → risco de oscilação
+	Ti grande (ex: 30s) → integral age devagar → mais conservador → lento para corrigir erro estacionário
+	Ti = 10s → o controlador elimina o erro estacionário em aproximadamente 30 a 40 segundos (≈ 3-4 × Ti)
+	Resumo em uma frase:
+	Ti = 10s é "quanto tempo o integrador leva para alcançar a mesma força que o proporcional já deu instantaneamente".
+	*)
+	
+	// --- Controle Droop (Potência Ativa) ---
+	Droop_Enable     	: BOOL := TRUE;      							// Habilita droop
+	K_Droop          	: REAL := 0.15;      							// kW/kW  (ex.: 0.05 = 5% de ganho)
+	Deadband_Droop   	: REAL := 2.0;       							// % (erro menor não gera droop)
+	Droop_Max        	: REAL := 0.4;       							// Fração da potência instalada (ex.: 0.6 = 60%)
+	
+	// --- Parâmetros do Controlador PI (Potência Ativa) ---
+    Kp_P           		: REAL := 0.25;									// Recomendado: 0.1 a 1.0
+																	    // Maior → resposta mais rápida, risco de oscilação
+																	    // Menor → mais suave, mas mais lento
+    Ki_P           		: REAL := 0.02;									// Recomendado: 0.02 a 0.1 - Com 1s de ciclo e tempo morto ~1,2–1,6s, integral muito alto oscila.
+																		// Com T=1s: constante de tempo integral Ti = Kp/Ki = 12,5s
+																	    // Significado: elimina erro estacionário em ~10 segundos
+																	    // NUNCA &gt; 0.2 com T=1s (oscilação garantida)
+	RampUp_P 			: REAL := 15.0;           						// Rampa de subida (kW/s) - limitar a 15-20 kW/s por causa do sweep de setpoints nos inversores
+	RampDown_P 			: REAL := 20.0;         						// Rampa de descida (kW/s) - RampDown_P ≤ 20–30 kW/s
+    Deadband_P  		: REAL := 1.0;  								// % da potência instalada (ex: 1.0 = 1%)
+	
+    // --- Configuração de Fator de Potência (PF) e Reativos (Q) ---
+    PF_target       	: REAL := 0.92; 								// Alvo |PF|
+	PF_sign				: REAL := 1.0;
+    // Parâmetros do PI de Correção de Q (Feedforward + Feedback)
+    Kp_Q           		: REAL := 50.0;									// Recomendado: 20.0 a 100.0 kvar/pu_PF
+																	    // Unidade: kvar por unidade de erro de PF
+																	    // Ex: erro PF = 0.02 → P_term = 50 * 0.02 = 1.0 kvar
+    Ki_Q           		: REAL := 5.0;									// Recomendado: 2.0 a 10.0 kvar/(pu_PF·s
+																	    // Com T=1s: Ti = Kp/Ki = 10s =&gt; elimina erro em ~30-40s
+																	    // Significado: corrige PF em ~10 segundos	
+	RampUp_Q 			: REAL := 50.0;            						// Rampa de subida (kvar/s)
+	RampDown_Q 			: REAL := 50.0;          						// Rampa de descida (kvar/s)
+	Deadband_Q 			: REAL := 0.01;          						// Zona morta de PF (ex: 0.01 = ±0.01) — padrão para GD
+
+    // --- Histerese de Habilitação ---
+    HysteresisOn	   	: REAL := 0.01; 								// Liga controle acima de 1%
+    HysteresisOff		: REAL := 0.01; 								// Desliga abaixo de 1%
+		
+    // --- Agenda Semanal (7 dias x 24 horas) e Datas Especiais
+	bHorarioVerao 		: BOOL:= FALSE;									// se TRUE  = Horário de Verão Ativo (+1h)
+    WeekSchedule_kW 	: ARRAY[1..7, 1..24] OF REAL; 					// (1=Dom 2=Seg 3=Ter 4=Quarta 5=Quinta 6=Sexta 7=Sábado) em kW
+    DatasEspeciais   	: ARRAY[1..GVL_Main.NDATASESPECIAIS] OF DATE;		// inicializa com zeros
+	SpecialDaySchedule 	: ARRAY[1..GVL_Main.NDATASESPECIAIS] OF REAL;		// cada data especial tem apenas um valor de potencia maxima valido para o dia inteiro
+
+    // ════════════════════════════════════════════════════════════════
+    // LIMITES FÍSICOS DO SISTEMA (Baseados no Transformador e Rede)
+    // ════════════════════════════════════════════════════════════════
+	// SafetyMargin_kW = SafetyMargin_pct × TC_Power_kW / 100 - Margem de segurança para compensar erro de TC perto de zero
+	SafetyMargin_pct 	: REAL := 3.0;     								// Percentual do TC (%)
+	// Exemplo 1: TC de 500 A, Tensão 380 V =&gt; P_TC = √3 × V × I = 1.732 × 380 × 500 = 329 kW
+	TC_Power_kW			: REAL := 0.0; 									// deve ser configurado como 3% da potencia total sob controle pelo TC
+	
+	VMIN 				: REAL := 7170;  // Volts - tensão de fase minima para tensão primária de 13,8kV
+    VMAX 				: REAL := 8370;  // Volts - tensão de fase máxima para tensão primária de 13,8kV
+    IMAX 				: REAL := 125.0;  // Amperes - corrente de linha - para potencia de usina de 3MW erro transformador 5%
+    PMAX 				: REAL := 3200.0; // kW (Demanda contratada + 10% de margem)
+	QMAX				: REAL := 2400.0; // kvar tan(acos(0.8)) × Pmax
+	// τ = tempo para atingir ~63% do valor final e T_scan = período de amostragem (1s no seu caso)
+	// α = T_scan / (τ + T_scan)  =&gt; Alpha=0.5 =&gt; 3 segundos para atingir 95% do valor final
+	// Item 2.1: "Responder em até 15 segundos a rejeição de carga"
+	// Item 2.2: "Limitar exportação em até 15 segundos"
+	// Nuvens passageiras: variação em 1–5 segundos
+	// Rejeição de carga: instantânea (&lt; 1s)
+	// Ruído de medição: &lt; 100 ms
+	ALPHA				: REAL := 0.25;
+	
+END_VAR</Single>
+            <Single Name="LineInfoPersistence" Type="string">050af149-128d-4073-bd86-7bba8f07880e_Decl_LineIds</Single>
+          </Single>
+        </Single>
+        <Null Name="NetVarProperties" />
+        <Single Name="guidinit" Type="System.Guid">54d416a3-6d1d-4555-9b07-eed66d0755c1</Single>
+        <Single Name="guidcyclic" Type="System.Guid">abaedbf6-9c5f-4a7d-a2f8-bd35e2f34d44</Single>
+        <Single Name="dymmattributecount" Type="int">0</Single>
+      </Single>
+      <Single Name="ParentSVNodeGuid" Type="System.Guid">35666114-8ece-4e05-bfe8-5deb307e26f3</Single>
+      <Array Name="Path" Type="string">
+        <Single Type="string">Dispositivo</Single>
+        <Single Type="string">PLC Logic</Single>
+        <Single Type="string">Application</Single>
+        <Single Type="string">Variaveis</Single>
       </Array>
       <Single Name="Index" Type="int">-1</Single>
     </Single>
