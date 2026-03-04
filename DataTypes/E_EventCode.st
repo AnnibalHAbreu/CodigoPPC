@@ -214,7 +214,7 @@ TYPE E_EventCode :
 
     // ── STOP / Trip ──
     CRIT_STOP_ENTRY                 := 16#8800,  // Entrada no estado STOP
-    CRIT_K2_DID_NOT_OPEN            := 16#8801,  // K2 não abriu após 2s → FaultLatch
+    CRIT_K2_NOT_OPENED              := 16#8801,  // K2 não abriu após 2s → FaultLatch
     CRIT_STATE_CORRUPTION           := 16#8802   // MachineState inválido
 
 ) UINT;

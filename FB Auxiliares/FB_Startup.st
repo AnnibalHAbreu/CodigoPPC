@@ -72,7 +72,7 @@ END_VAR
     		GVL_Main.timestampUTC := TO_UDINT(SysTimeRtcGet(GVL_Main.Result)); 							// UDINT#1528268918
     		GVL_ALARM_MANAGER.CRIT_RTC_FAIL:=(GVL_Main.Result <> eResultCode.OK);                        // Em caso de erro de leitura do relógio, vai para STOP
     		IF GVL_ALARM_MANAGER.CRIT_RTC_FAIL THEN 														
-    			GVL_Main.K3RedOut:=TRUE;																// sinalizar que houve erro para ler o relógio
+    			GVL_Main.LedRedOut:=TRUE;																// sinalizar que houve erro para ler o relógio
     			FC_LogEvent(
     				eCode      := E_EventCode.CRIT_RTC_FAILED,
     				bRaised    := TRUE,
@@ -108,7 +108,7 @@ END_VAR
     		GVL_ALARM_MANAGER.CRIT_SERIAL_INIT_FAIL:= NOT (xMaster01IsReady AND xMaster02IsReady);		
     		
     		IF GVL_ALARM_MANAGER.CRIT_SERIAL_INIT_FAIL THEN
-    			GVL_Main.K3RedOut:=TRUE;
+    			GVL_Main.LedRedOut:=TRUE;
     			stState := E_StartupStatus.stError;
     			FC_LogEvent(
     				eCode      := E_EventCode.CRIT_SERIAL_INIT_FAILED,
@@ -212,7 +212,7 @@ END_VAR
     		GVL_ALARM_MANAGER.CRIT_INSTALLED_PWR_ZERO:= (GVL_Main.InstalledPower <= 0.0);
     		IF GVL_ALARM_MANAGER.CRIT_INSTALLED_PWR_ZERO THEN
     			GVL_Main.TotalReactivePower := 0.0;
-    			GVL_Main.K3RedOut:=TRUE;
+    			GVL_Main.LedRedOut:=TRUE;
     			stState := E_StartupStatus.stError;
     			FC_LogEvent(
     				eCode      := E_EventCode.CRIT_INSTALLED_PWR_ZERO,
@@ -228,7 +228,7 @@ END_VAR
     		GVL_ALARM_MANAGER.CRIT_INSTALLED_SMAX_ZERO:= (GVL_Main.InstalledSmax <= 0.0);
     		IF GVL_ALARM_MANAGER.CRIT_INSTALLED_SMAX_ZERO THEN
     			GVL_Main.TotalReactivePower := 0.0;
-    			GVL_Main.K3RedOut:=TRUE;
+    			GVL_Main.LedRedOut:=TRUE;
     			stState := E_StartupStatus.stError;
     			FC_LogEvent(
     				eCode      := E_EventCode.CRIT_INSTALLED_SMAX_ZERO,
@@ -259,6 +259,13 @@ END_VAR
     			stState := E_StartupStatus.stError;
     			RETURN;
     		END_IF
+    		
+    		// zera setpoints por segurança
+            FOR indice := 1 TO GVL_Main.NMAXINVERSORES DO
+                GVL_Main.P_inv_kW[indice] := 0.0;
+                GVL_Main.P_inv_Percent[indice] := 0.0;
+                GVL_Main.Q_inv_kvar[indice] := 0.0;
+            END_FOR
     
     		// Muda para próximo estado	
     		stState := E_StartupStatus.stWait_K1;
@@ -373,7 +380,7 @@ END_VAR
     
     //   Aplicar comandos calculados às saídas físicas / públicas
     GVL_Main.K1_out 		:= cmdK01;
-    GVL_Main.K3RedOut 		:= auxRed;
-    GVL_Main.K4YellowOut 	:= auxYellow;
-    GVL_Main.K5GreenOut 	:= auxGreen;
+    GVL_Main.LedRedOut 		:= auxRed;
+    GVL_Main.LedYellowOut 	:= auxYellow;
+    GVL_Main.LedGreenOut 	:= auxGreen;
 END_FUNCTION_BLOCK

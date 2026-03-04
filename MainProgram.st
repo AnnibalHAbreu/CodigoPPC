@@ -17,8 +17,8 @@ PROGRAM MainProgram
 *)
 
 VAR
-    fbStart         		: FB_Startup;        		// executa a inicialização
-    fbControle      		: FB_Controle;		 		// módulo de controle
+    fbStart         		: FB_Startup;        						// executa a inicialização
+    fbControle      		: FB_Controle;		 						// módulo de controle
 	fbChannel       		: ModbusChannel;
 	fbReadMeas 				: FB_ModBus;
 	fbValidaDados			: FB_ValidaDados;
@@ -31,6 +31,7 @@ VAR
 	MachineState_Last 		: E_MachineState := E_MachineState.START;
     FailState     			: E_FailState := E_FailState.FS_INIT;
 	PrevFail				: E_FailState := E_FailState.FS_INIT;
+	StopState				: E_StopState := E_StopState.STOP_INIT;
 	
     // ══════════════════════════════════════════════════════════
     // STOP: Trip e Reset Manual
@@ -50,7 +51,7 @@ VAR
     // ══════════════════════════════════════════════════════════
     ton15s  				: TON;   // Hard limit > 15s → STOP
     ton30s  				: TON;   // Exportação > LPI por > 30s → STOP
-    ton2s   				: TON;   // Confirmação K2 aberto
+    tonStopTrip   				: TON;   // Confirmação K2 aberto
 
     // ══════════════════════════════════════════════════════════
     // Health Monitoring
@@ -142,7 +143,7 @@ END_VAR
     			StopInit := FALSE;
     			ton15s(IN := FALSE);
     			ton30s(IN := FALSE);
-    			ton2s(IN := FALSE);
+    			tonStopTrip(IN := FALSE);
                 (* Inicialização concluída – segue para leitura *)		
                 GVL_Main.MachineState := E_MachineState.READ;
     		E_StartupStatus.stError:
@@ -438,8 +439,8 @@ END_VAR
             E_FailState.FS_INIT:
     		
     			// Sinalização
-    			GVL_Main.K4YellowOut := TRUE;
-    			GVL_Main.K5GreenOut := FALSE;
+    			GVL_Main.LedYellowOut := TRUE;
+    			GVL_Main.LedGreenOut := FALSE;
                 // Reinicializa índices de escrita
     			tonFailSafeRecovery(IN := FALSE);
     			tonMedidorTimeout(IN := FALSE); 
@@ -499,7 +500,7 @@ END_VAR
                         ton30s(IN := FALSE);
     					tonMedidorTimeout(IN := FALSE);
                 		tonFailSafeRecovery(IN := FALSE);
-                        GVL_Main.K4YellowOut := FALSE;
+                        GVL_Main.LedYellowOut := FALSE;
                     END_IF				
                 ELSE
             		// ❌ Condições NÃO OK: reseta recuperação e testa timeout
@@ -510,7 +511,8 @@ END_VAR
                     IF tonMedidorTimeout.Q THEN
     					// ❌ STOP: Perda de visibilidade da planta
                         // Sinaliza  16#E3;
-                        GVL_Main.MachineState := E_MachineState.STOP;
+                        StopState := E_StopState.STOP_INIT;
+    					GVL_Main.MachineState := E_MachineState.STOP;
     					tonMedidorTimeout(IN := FALSE);  // Reset timer
             			RETURN;
                     END_IF
@@ -519,116 +521,74 @@ END_VAR
     
     // ────────────────────────────────────────────────────────────────
     E_MachineState.STOP:
-        // ══════════════════════════════════════════════════════════
-        // A. ENTRADA EM STOP (primeira execução)
-        // ══════════════════════════════════════════════════════════
-    	
-    	// Sinaliza entrada em STOP
-        IF NOT StopInit THEN
-            StopInit := TRUE;
-            StopEntryTime := SysTimeCore.SysTimeGetMs();
-            TripCheck := TRUE;
     
-    		        
+        // ────────────────────────────────────────────────────────────────
+        // A. ENTRADA EM STOP (primeira execução)
+    	
+    	CASE StopState OF 
+    	// Sinaliza entrada em STOP
+        E_StopState.STOP_INIT:
+    
+            tonStopTrip(IN := FALSE);                  // garante timer resetado
+            StopResetCmd := FALSE;               // evita saída imediata por comando antigo
+    		
             // Trip imediato
             GVL_Main.K2_out := TRUE;									// aciona K2 - trip do disjuntor
             GVL_Main.K1_out := FALSE;									// desliga K1 bobina de minima tensão ou contator se existente
-            GVL_Main.K3RedOut := TRUE;									// indica disjuntor desligado e houve trip
-            GVL_Main.K4YellowOut := FALSE;
-            GVL_Main.K5GreenOut := FALSE;
-    	    // zera setpoints por segurança
-            FOR i := 1 TO GVL_Main.NMAXINVERSORES DO
-                GVL_Main.P_inv_kW[i] := 0.0;
-                GVL_Main.P_inv_Percent[i] := 0.0;
-                GVL_Main.Q_inv_kvar[i] := 0.0;
-            END_FOR	
-    	
-        END_IF
-        
-        // ══════════════════════════════════════════════════════════
+    		
+    		// Sinalização
+            GVL_Main.LedRedOut := TRUE;									// indica disjuntor desligado e houve trip
+            GVL_Main.LedYellowOut := FALSE;
+            GVL_Main.LedGreenOut := FALSE;
+    		
+    		GVL_ALARM_MANAGER.CRIT_K2_NOT_OPENED :=FALSE;
+    					
+    		StopState:= E_StopState.STOP_TRIP;
+    	   
+    	// ────────────────────────────────────────────────────────────────
         // B. Aguarda 2 segundos para verificar acionamento de K2 (executa apenas 1 vez)
-        // ══==══════════════════════════════════════════════════════
-        IF TripCheck THEN
-            ton2s(IN := TRUE, PT := T#2S);
+    
+        E_StopState.STOP_TRIP: 
+    	
+            tonStopTrip(IN := TRUE, PT := T#2S);
             
-            IF ton2s.Q THEN
-                TripCheck := FALSE;
-                ton2s(IN := FALSE);
+            IF tonStopTrip.Q THEN
+                tonStopTrip(IN := FALSE);
                 
-    			GVL_ALARM_MANAGER.CRIT_K2_NOT_OPENED := GVL_Main.K2_in;	// se K2=TRUE => K2 não tripou
+    			GVL_ALARM_MANAGER.CRIT_K2_NOT_OPENED := GVL_Main.K2_in;		// se K2=TRUE => K2 não tripou
+    			
                 IF (GVL_ALARM_MANAGER.CRIT_K2_NOT_OPENED) THEN
     				// Sinaliza Trip não aconteceu;
-    				TripOk := FALSE;
-    				FC_LogEvent(eCode := E_EventCode.CRIT_K2_DID_NOT_OPEN,bRaised := TRUE,rParam1 := 0.0,rParam2 := 0.0,uMachState := GVL_Main.MachineState);
+    				FC_LogEvent(eCode := E_EventCode.CRIT_K2_NOT_OPENED,bRaised := TRUE,rParam1 := 0.0,rParam2 := 0.0,uMachState := GVL_Main.MachineState);
                 ELSE
                     // Sinaliza Trip aconteceu;
-                    TripOk := TRUE;
+    				FC_LogEvent(eCode := E_EventCode.INFO_STOP_K2_OPEN_CONFIRMED,bRaised := TRUE,rParam1 := 0.0,rParam2 := 0.0,uMachState := GVL_Main.MachineState);
                 END_IF
+    			
+    			StopState:= E_StopState.STOP_LATCHED;
+    			
             END_IF
-        END_IF
         
-        // ══════════════════════════════════════════════════════════
-        // C. PROCESSAMENTO DE RESET MANUAL
-        // ══════════════════════════════════════════════════════════
-        rTrigReset(CLK := StopResetCmd);									// comandado pela IHM ou por botão frontal
-        
-    	// falta fazer leitura do medidor!!!
+    	// ────────────────────────────────────────────────────────────────
+        // C. AGUARDA RESET MANUAL PELO OPERADOR
     
-    	
-    	// Borda de subida: avalia condições básicas UMA VEZ
-        IF rTrigReset.Q THEN
-            // Avalia condições básicas
-            bResetConditionsOK := TripOk AND MedidorOK AND ComOK;      
-    		 IF NOT bResetConditionsOK THEN
-    			// Reset negado imediatamente
+        E_StopState.STOP_LATCHED:
+     
+    		rTrigReset(CLK := StopResetCmd OR GVL_Main.BotaoReset);									// comandado pela IHM ou por botão frontal
+        	
+    		IF rTrigReset.Q THEN																	// Borda de subida: avalia condições básicas UMA VEZ
     			StopResetCmd := FALSE;
-    			tonResetWindow(IN := FALSE);
-    			
-    			IF GVL_Main.K2_in THEN
-    				// sResetDenialReason := 'K2 não está aberto';
-    			ELSIF TripOk THEN
-    				// sResetDenialReason := 'FaultLatch ativo';
-    			ELSE
-    				// sResetDenialReason := 'Medidor não OK';
-    			END_IF
-    			
-    			// Sinaliza 'STOP: 'STOP reset NEGADO: ', sResetDenialReason);
-    		END_IF
-    	END_IF       
-            
-    	// Monitoramento CONTÍNUO enquanto StopResetCmd=TRUE e condições OK
-    	IF StopResetCmd AND bResetConditionsOK THEN
-    		// Timer acumula enquanto Pt dentro do limite
-    		IF GVL_Main.MaxExportLimit > 0.0 THEN
-    			tonResetWindow(IN := (GVL_Main.Pt >= -(GVL_Main.MaxExportLimit)), PT := T#10S);
-    		ELSE
-    			tonResetWindow(IN := (GVL_Main.Pt > 0.0), PT := T#10S);
-    		END_IF
-    		
-    		IF tonResetWindow.Q THEN
-    			// ✅ Reset aprovado após 10s
-    			StopInit := FALSE;
-    			StopResetCmd := FALSE;
-    			bResetConditionsOK := FALSE;
+    			StopState:= E_StopState.STOP_INIT;													// prepara próxima entrada
     			GVL_Main.MachineState := E_MachineState.START;
-    			ton15s(IN := FALSE);
-    			ton30s(IN := FALSE);
-    			ton2s(IN := FALSE);
-    			tonResetWindow(IN := FALSE);
-    			// Sinaliza 'STOP: 'STOP reset manual OK';
-    		ELSE
-    			// Sinaliza 'STOP: 'Aguardando Pt estável por 10s...';
-    		END_IF	
-    	ELSE
-    		tonResetWindow(IN := FALSE);
-    	END_IF
+    		END_IF       
     
+    // ────────────────────────────────────────────────────────────────
     E_MachineState.ERRO:
     	// não faz nada, fica aguardando reset geral
     	// mandar mensagem de erro para a IHM
-    	GVL_Main.K3RedOut := TRUE;				// indica que houve falha
-        GVL_Main.K4YellowOut := FALSE;
-        GVL_Main.K5GreenOut := FALSE;
+    	GVL_Main.LedRedOut := TRUE;				// indica que houve falha
+        GVL_Main.LedYellowOut := FALSE;
+        GVL_Main.LedGreenOut := FALSE;
     	
     END_CASE
     

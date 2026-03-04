@@ -27,14 +27,16 @@ VAR_GLOBAL
 	// Saidas digitais
   	K1_out  					: BOOL;   							// DI X5_1 - K1 - controle permissivo
 	K2_out						: BOOL;								// DI X5_2 - K2 - controle trip
-  	K3RedOut					: BOOL;								// DI X5_3 - nada pronto - K1 e K2 abertos
-  	K4YellowOut  				: BOOL;   							// DI X5_4 - K1 fechou - permissivo ok
-  	K5GreenOut  				: BOOL;   							// DI X5_5 - K2 fechou - acende verde -tudo pronto
+  	LedRedOut					: BOOL;								// DI X5_3 - nada pronto - K1 e K2 abertos
+  	LedYellowOut  				: BOOL;   							// DI X5_4 - K1 fechou - permissivo ok
+  	LedGreenOut  				: BOOL;   							// DI X5_5 - K2 fechou - acende verde -tudo pronto
 
 		
 	// Entredas digitais
 	K1_in        				: BOOL;                				// DI X12_1 - contato auxliar de K1_in=1 => K1 fechado (permite gerar)
   	K2_in        				: BOOL;                				// DI X12_2 - contato auxliar de K2_in=1 => K2 fechado (permite gerar) trip desarmado
+  	BotaoReset     				: BOOL;                				// DI X12_3 - botao frontal para comandar reset geral quando no estado STOP
+
 
     //    Medições (REAL) - Tensões (V), Correntes (A), Potências Ativas (W), Potências Reativas (var), PF (adimensional, sinal: + indutivo, - capacitivo)
 	
