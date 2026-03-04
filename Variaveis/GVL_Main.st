@@ -103,9 +103,10 @@ VAR_GLOBAL
     // Telemetria: Valores efetivos calculados para cada inversor
     P_inv_kW     	: ARRAY[1..NMAXINVERSORES] OF REAL; 							// valor de setpoint de potencia ativa em kW
 	P_inv_Percent 	: ARRAY[1..NMAXINVERSORES] OF REAL; 							// valor de setpoint de potencia ativa em percentual do nominal
+	P_inv_limit 	: ARRAY[1..NMAXINVERSORES] OF REAL; 							// valor limite de potencia ativa com base na SMAX de cada um
     Q_inv_kvar    	: ARRAY[1..NMAXINVERSORES] OF REAL; 							// valor de setpoint de potencia reativa em kVA
     PF_inv 			: ARRAY[1..NMAXINVERSORES] OF REAL; 							// valor do fator de potencia de cada inversor (deve ser 0,92 para todos)
-	P_inv_limit 	: ARRAY[1..NMAXINVERSORES] OF REAL; 							// valor limite de potencia ativa com base na SMAX de cada um
+	PF_inv_Percent	: ARRAY[1..NMAXINVERSORES] OF REAL; 							// valor de setpoint de fator de potencia em percentual
 	
 	// Margem de segurança para compensar erro de TC perto de zero, o sistema tentará manter importação mínima garantido que não haja exportação
 	SafetyMargin_pct: REAL :=0.03;

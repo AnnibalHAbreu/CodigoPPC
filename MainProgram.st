@@ -585,11 +585,11 @@ END_VAR
     			tonResetWindow(IN := FALSE);
     			
     			IF GVL_Main.K2_in THEN
-    				sResetDenialReason := 'K2 não está aberto';
+    				// sResetDenialReason := 'K2 não está aberto';
     			ELSIF TripOk THEN
-    				sResetDenialReason := 'FaultLatch ativo';
+    				// sResetDenialReason := 'FaultLatch ativo';
     			ELSE
-    				sResetDenialReason := 'Medidor não OK';
+    				// sResetDenialReason := 'Medidor não OK';
     			END_IF
     			
     			// Sinaliza 'STOP: 'STOP reset NEGADO: ', sResetDenialReason);

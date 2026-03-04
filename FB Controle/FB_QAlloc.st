@@ -3,6 +3,10 @@
     ════════════════════════════════════════════════════════════════
     FB_QAlloc - Alocador de Potência Reativa
     ════════════════════════════════════════════════════════════════
+	         
+   // Protocolo Goodwe:
+   //   - Indutivo (Q ≥ 0): Reg 80-100 → PF = Reg/100 (0.80-1.00)
+   //   - Capacitivo (Q < 0): Reg 1-20 → PF = (100-Reg)/100 (0.80-0.99)
 *)
 
 FUNCTION_BLOCK FB_QAlloc
@@ -38,6 +42,9 @@ VAR
     proportion : REAL;
     S_total : REAL;
     S_i : REAL;  // ✅ S do inversor i (calculado 1 vez)
+	                
+    PF_abs : REAL;  // PF absoluto (sem sinal)
+    PF_reg : REAL;  // Registrador Modbus calculado (1-20 ou 80-100)
 END_VAR
 
 
@@ -134,13 +141,89 @@ END_VAR
             ELSE
                 GVL_Main.PF_inv[i] := 1.0;
             END_IF
-            
+    
             // ────────────────────────────────────────────────────────
-            // H. ACUMULADORES
-            // ────────────────────────────────────────────────────────
-            P_total := P_total + P_actual_i;
-            Q_total := Q_total + Q_actual_i;
-            Q_capacity_total_internal := Q_capacity_total_internal + Q_max_i;
+            // Protocolo Goodwe:
+            //   - Indutivo (Q ≥ 0): Reg 80-100 → PF = Reg/100 (0.80-1.00)
+            //   - Capacitivo (Q < 0): Reg 1-20 → PF = (100-Reg)/100 (0.80-0.99)
+            // ──────────────────────────────────────────────────────────
+            // VALIDAÇÃO DE RANGE FÍSICO
+            // ──────────────────────────────────────────────────────────
+            PF_abs := ABS(GVL_Main.PF_inv[i]);
+    
+            IF PF_abs < 0.80 THEN
+            // ❌ CRÍTICO: PF < 0.80 não é suportado pelo inversor
+    			IF GVL_Main.Q_inv_kvar[i] >= 0.0 THEN
+    				GVL_Main.PF_inv[i] := 0.80;   // Indutivo
+    			ELSE
+    				GVL_Main.PF_inv[i] := -0.80;  // Capacitivo
+    			END_IF
+    			FC_LogEvent(
+    				eCode := E_EventCode.ALARM_MEAS_PFT_RANGE,  // Reutiliza evento existente
+    				bRaised := TRUE,
+    				rParam1 := UINT_TO_REAL(i),
+    				rParam2 := PF_abs,
+    				uMachState := GVL_Main.MachineState
+    				);
+    			PF_abs := 0.80;
+                    
+            ELSIF PF_abs > 1.0 THEN
+                // ❌ CRÍTICO: PF > 1.0 fisicamente impossível
+    			IF GVL_Main.Q_inv_kvar[i] >= 0.0 THEN
+    				GVL_Main.PF_inv[i] := 1.0;
+    			ELSE
+    				GVL_Main.PF_inv[i] := -1.0;
+    			END_IF
+                FC_LogEvent(
+                    eCode := E_EventCode.ALARM_MEAS_PFT_RANGE,
+                    bRaised := TRUE,
+                    rParam1 := UINT_TO_REAL(i),
+                    rParam2 := PF_abs,
+                    uMachState := GVL_Main.MachineState
+                );
+                PF_abs := 1.0;
+            END_IF
+    
+           // ──────────────────────────────────────────────────────────
+           // CONVERSÃO PARA FORMATO MODBUS (Baseado no SINAL de Q)
+           // ──────────────────────────────────────────────────────────
+    
+           IF GVL_Main.Q_inv_kvar[i] >= 0.0 THEN
+                // ── INDUTIVO (Q positivo) → Range 80-100 ──
+                PF_reg := PF_abs * 100.0;
+                  
+                // Clamp no range válido
+                IF PF_reg < 80.0 THEN
+                    PF_reg := 80.0;
+                ELSIF PF_reg > 100.0 THEN
+                    PF_reg := 100.0;
+           		END_IF
+                    
+           ELSE
+                // ── CAPACITIVO (Q negativo) → Range 1-20 ──
+                // Fórmula: Reg = 100 - (PF × 100)
+                // Ex: PF 0.90 → Reg = 100 - 90 = 10
+                PF_reg := 100.0 - (PF_abs * 100.0);
+                   
+                // Clamp no range válido
+                IF PF_reg < 1.0 THEN
+                    PF_reg := 1.0;
+                 ELSIF PF_reg > 20.0 THEN
+                     PF_reg := 20.0;
+                END_IF
+           END_IF
+    
+           // ──────────────────────────────────────────────────────────
+           // ARMAZENA VALOR FINAL
+           // ──────────────────────────────────────────────────────────
+           GVL_Main.PF_inv_Percent[i] := PF_reg;
+           
+    	   // ────────────────────────────────────────────────────────
+           // H. ACUMULADORES
+           // ────────────────────────────────────────────────────────
+           P_total := P_total + P_actual_i;
+           Q_total := Q_total + Q_actual_i;
+           Q_capacity_total_internal := Q_capacity_total_internal + Q_max_i;
             
         ELSE
             // Inversor inativo
@@ -149,6 +232,7 @@ END_VAR
             GVL_Main.Inv_Q_available[i] := 0.0;
             GVL_Main.Inv_S_utilization[i] := 0.0;
             GVL_Main.Inv_limited[i] := FALSE;
+            GVL_Main.PF_inv_Percent[i] := 100.0;  // PF = 1.0 em formato Modbus
         END_IF
         
     END_FOR

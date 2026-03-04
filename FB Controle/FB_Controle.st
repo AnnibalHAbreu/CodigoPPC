@@ -120,7 +120,7 @@ END_VAR
     fbFFQ(
         P_active_kW := fbPowerCtrl.P_cmd_kW, 
         PF_target_abs := GVL_Persis.PF_target,
-        PF_sign := 1.0                              // Indutivo (positivo)
+        PF_sign := -1.0                              // capacitivo (negativo)
     );
     
     Q_feedforward_kvar := fbFFQ.Q_reactive_kvar;  	
