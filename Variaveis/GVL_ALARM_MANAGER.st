@@ -41,6 +41,9 @@ VAR_GLOBAL
     CRIT_HARDLIMIT_15S       		: BOOL := FALSE;    // Error: P > LPI+10% por >15s
     CRIT_EXPORT_OVER_LPI_30S   		: BOOL := FALSE;    // Error: P > LPI por >30s
     CRIT_K2_NOT_OPENED       		: BOOL := FALSE;    // Error: K2 não abriu após trip
+	CRIT_MEAS_TIMEOUT_IN_FAIL    	: BOOL := FALSE;	// 5s sem medição válida em FAIL → STOP
+	CRIT_FAIL_ENTRY                 : BOOL := FALSE;    // Entrada no estado FAIL		
+
 	
 	// Status do sistema
 	ALARM_FAIL_ACTIVE				: BOOL := FALSE;  	// MachineState=FAIL

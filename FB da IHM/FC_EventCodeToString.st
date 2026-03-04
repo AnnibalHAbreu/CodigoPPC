@@ -228,13 +228,13 @@ END_VAR
             FC_EventCodeToString := 'Protecao: HardLimit >15s';
         E_EventCode.CRIT_EXPORT_OVER_LPI_30S:
             FC_EventCodeToString := 'Protecao: Exportacao >LPI >30s';
-        E_EventCode.CRIT_MEDIDOR_TIMEOUT_IN_FAIL:
+        E_EventCode.CRIT_MEAS_TIMEOUT_IN_FAIL:
             FC_EventCodeToString := 'Protecao: timeout medidor em FAIL';
     
         // STOP / Trip
         E_EventCode.CRIT_STOP_ENTRY:
             FC_EventCodeToString := 'STOP: entrada em STOP';
-        E_EventCode.CRIT_K2_DID_NOT_OPEN:
+        E_EventCode.CRIT_K2_NOT_OPENED:
             FC_EventCodeToString := 'STOP: K2 nao abriu';
         E_EventCode.CRIT_STATE_CORRUPTION:
             FC_EventCodeToString := 'Sistema: corrupcao de estado';

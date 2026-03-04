@@ -208,14 +208,15 @@ TYPE E_EventCode :
     CRIT_SCAN_OVERRUN               := 16#8600,  // ex-16#F1 3× overruns consecutivos → FAIL
 
     // ── Proteção normativa ──
-    CRIT_HARDLIMIT_15S             	:= 16#8700,  // ex-16#E1 P > LPI+10%Pnom por >15s → STOP
-    CRIT_EXPORT_OVER_LPI_30S        := 16#8701,  // ex-16#E2 P > LPI por >30s → STOP
-    CRIT_MEDIDOR_TIMEOUT_IN_FAIL    := 16#8702,  // ex-16#E3 30s sem medição válida em FAIL → STOP
+    CRIT_HARDLIMIT_15S             	:= 16#8700,  // P > LPI+10%Pnom por >15s → STOP
+    CRIT_EXPORT_OVER_LPI_30S        := 16#8701,  // P > LPI por >30s → STOP
+    CRIT_MEAS_TIMEOUT_IN_FAIL    	:= 16#8702,  // 5s sem medição válida em FAIL → STOP
 
-    // ── STOP / Trip ──
+    // ── FAIL / STOP / Trip ──
     CRIT_STOP_ENTRY                 := 16#8800,  // Entrada no estado STOP
     CRIT_K2_NOT_OPENED              := 16#8801,  // K2 não abriu após 2s → FaultLatch
-    CRIT_STATE_CORRUPTION           := 16#8802   // MachineState inválido
+    CRIT_STATE_CORRUPTION           := 16#8802,  // MachineState inválido
+	CRIT_FAIL_ENTRY                 := 16#8803   // Entrada no estado FAIL
 
 ) UINT;
 END_TYPE
