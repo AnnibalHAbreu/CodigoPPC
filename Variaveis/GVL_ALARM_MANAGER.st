@@ -54,4 +54,11 @@ VAR_GLOBAL
     ALARM_PF_BELOW_TARGET     		: BOOL := FALSE;    // Warning: PF < 0.92
     ALARM_PF_CRITICAL         		: BOOL := FALSE;    // Error: PF < 0.92 + Q saturado
     ALARM_Q_LIMITED_BY_SMAX    		: BOOL := FALSE;    // Info: Q limitado por S
+	
+	// FAIL-SAFE avançado
+	ALARM_FAIL_RECOVERY_STARTED     : BOOL := FALSE;    // Timer de recuperação iniciou
+	CRIT_FAIL_WRITE_FAILED          : BOOL := FALSE;    // Escrita zero falhou (inversores não responderam)
+	CRIT_FAIL_WRITE_EXHAUSTED       : BOOL := FALSE;    // Esgotou retentativas de escrita zero → STOP
+	CRIT_FAIL_GLOBAL_TIMEOUT        : BOOL := FALSE;    // Permaneceu em FAIL além do máximo permitido
+
 END_VAR

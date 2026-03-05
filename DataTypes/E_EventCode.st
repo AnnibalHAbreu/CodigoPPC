@@ -205,7 +205,12 @@ TYPE E_EventCode :
     CRIT_SCHEDULE_INDEX_INVALID     := 16#8501,  // Índice dia/hora inválido
 
     // ── Watchdog ──
-    CRIT_SCAN_OVERRUN               := 16#8600,  // ex-16#F1 3× overruns consecutivos → FAIL
+    CRIT_SCAN_OVERRUN               := 16#8600,  // 3× overruns consecutivos → FAIL
+	CRIT_FAIL_WRITE_ZERO_FAILED     := 16#8601,  // Escrita zero falhou no FAIL
+	CRIT_FAIL_WRITE_EXHAUSTED       := 16#8602,  // Esgotou tentativas escrita zero
+	CRIT_FAIL_GLOBAL_TIMEOUT        := 16#8603,  // Timeout global de permanência em FAIL
+	INFO_FAIL_RECOVERY_STARTED      := 16#1604,  // Condições de recuperação detectadas
+	INFO_FAIL_STATE_CHANGE          := 16#1605,  // Mudança de sub-estado em FAIL
 
     // ── Proteção normativa ──
     CRIT_HARDLIMIT_15S             	:= 16#8700,  // P > LPI+10%Pnom por >15s → STOP

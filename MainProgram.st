@@ -98,6 +98,18 @@ VAR
     tStopWrite        		: TIME := T#2S;
 	tonFailSafeRecovery		: TON;   // tempo para recuperação ao normal
 	tonMedidorTimeout		: TON;   // tempo que aguarda medidor sem leitura
+	FailWriteRetryCount    	: UINT := 0;           // Contador de tentativas de escrita zero
+	MAX_FAIL_WRITE_RETRIES 	: UINT := 3;           // Máximo de tentativas (CONST)
+	RecoveryCycleCount     	: UINT := 0;           // Ciclos consecutivos com recuperação OK
+	RECOVERY_CYCLES        	: UINT := 10;          // Ciclos necessários (CONST)
+	tonFailGlobalTimeout   	: TON;                 // Timer global de permanência em FAIL
+	FAIL_MAX_DURATION      	: TIME := T#120S;      // Tempo máximo em FAIL (CONST)
+	bMeasRecovered         	: BOOL := FALSE;
+	bExportOK              	: BOOL := FALSE;  
+	bComRecovered         	: BOOL := FALSE;
+	bAllRecoveryOK         	: BOOL := FALSE;
+	bRecoveryApproved      	: BOOL := FALSE;
+	bFailInitDone          	: BOOL := FALSE;       // Evita re-execução de FS_INIT
 	
     // ══════════════════════════════════════════════════════════
     // Debug/Monitor
@@ -391,11 +403,13 @@ END_VAR
     // ────────────────────────────────────────────────────────────────
     E_MachineState.FAIL:
     // ESTADO FAIL — Redução forçada (norma DIS-NOR-033)
+    // Fluxo: FS_INIT → FS_FORCE_ZERO → FS_VALIDATE → (recupera ou STOP)
     // ton15s: P > LPI + 10% Pnom por >15s → STOP
     // ton30s: P > LPI por >30s → STOP
     
-        // ══════════════════════════════════════════════════════════
-        // TIMERS NORMATIVOS (monitorados TODO CICLO)
+        // ────────────────────────────────────────────────────────────────
+    	// A. CÁLCULOS INDEPENDENTES DE SUB-ESTADO (executam TODO ciclo)
+    
         // Cálculo do hard limit
     	LPI_mag := ABS(GVL_Main.MaxExportLimit);
     	Export_mag := MAX(0, -GVL_Main.Pt);
@@ -404,56 +418,74 @@ END_VAR
         // Mantém leitura do medidor (diagnóstico)
       	fbReadMeas(tTimeout := T#250MS,trigInv:=GVL_Main.trigMedidor100,pSlave:=GVL_Main.pMedidor100^);
     	
-    	// Atualiza MedidorOK dentro de FAIL
+    	// Atualiza MedidorOK
     	IF fbReadMeas.result = E_ModbusResult.DONE THEN
     		fbValidaDados(Meas_Device := GVL_Persis.MeasDeviceType);
     		MedidorOK := fbValidaDados.bDadosOK;
     	ELSE
-    		MedidorOK := FALSE; // fail-safe: sem leitura válida, não confio
+    		MedidorOK := FALSE; 
     	END_IF;
     	
-        // ── TIMER 15s: hard limit (P > LPI + 10% Pnom) ──
+        // ────────────────────────────────────────────────────────────────
+        // B. ATUALIZA TODOS OS TIMERS (executam TODO ciclo)
+        //    Apenas atualiza — a DECISÃO é feita abaixo na cadeia IF
     
-        ton15s(IN := Export_mag > HardLimit_mag, PT := T#15S);
-    
-        // ── TIMER 30s: exportação persistente (P > LPI) ──
-        ton30s(IN := (Export_mag > LPI_mag), PT := T#30S);
+        tonFailGlobalTimeout(IN := TRUE, PT := FAIL_MAX_DURATION);
+        ton15s(IN := MedidorOK AND (Export_mag > HardLimit_mag), PT := T#15S);
+        ton30s(IN := MedidorOK AND (Export_mag > LPI_mag), PT := T#30S);	
     	
-        // ── Escalada para STOP ──
-        IF ton15s.Q OR ton30s.Q THEN
-    		
-    		IF ton15s.Q THEN
-    			GVL_ALARM_MANAGER.CRIT_HARDLIMIT_15S:=ton15s.Q;
-    			FC_LogEvent(eCode:=E_EventCode.CRIT_HARDLIMIT_15S,bRaised:=TRUE,
-    				rParam1:=Export_mag,rParam2:=HardLimit_mag,uMachState := CurrentState);
-    			// SINALIZA ERRO hard limit: P > LPI + 10% Pnom por >15s
-    		ELSIF ton30s.Q THEN
-    			GVL_ALARM_MANAGER.CRIT_EXPORT_OVER_LPI_30S:=ton30s.Q;
-    			FC_LogEvent(eCode:=E_EventCode.CRIT_EXPORT_OVER_LPI_30S,bRaised:=TRUE,
-    				rParam1:=Export_mag,rParam2:=LPI_mag,uMachState := CurrentState);
-    			// SINALIZA ERRO exportação > LPI por >30s
-    		END_IF
+        // ────────────────────────────────────────────────────────────────
+        // C. CADEIA DE DECISÃO COM PRIORIDADE EXPLÍCITA
+        //    IF/ELSIF garante que apenas UMA decisão prevalece
+        //    Prioridade: Global > HardLimit > Export30s > SubEstados
+    
+        // ── PRIORIDADE 1: Timeout global (preso em FAIL por tempo demais)
+        IF tonFailGlobalTimeout.Q THEN
+            FC_LogEvent(eCode:=E_EventCode.CRIT_FAIL_GLOBAL_TIMEOUT, bRaised:=TRUE,
+                rParam1:=Export_mag, rParam2:=LPI_mag, uMachState := CurrentState);
+            GVL_ALARM_MANAGER.CRIT_FAIL_GLOBAL_TIMEOUT := TRUE;
+            tonFailGlobalTimeout(IN := FALSE);
+            NextState := E_MachineState.STOP;										// Não processa o resto — sai imediatamente
+    	
+        // ── PRIORIDADE 2: Hard limit 15s (P > LPI + 10% Pnom)
+        ELSIF ton15s.Q THEN
+            GVL_ALARM_MANAGER.CRIT_HARDLIMIT_15S := TRUE;
+            FC_LogEvent(eCode:=E_EventCode.CRIT_HARDLIMIT_15S, bRaised:=TRUE,
+                rParam1:=Export_mag, rParam2:=HardLimit_mag, uMachState := CurrentState);
             NextState := E_MachineState.STOP;
     
+        // ── PRIORIDADE 3: Exportação > LPI por > 30s
+        ELSIF ton30s.Q THEN
+            GVL_ALARM_MANAGER.CRIT_EXPORT_OVER_LPI_30S := TRUE;
+            FC_LogEvent(eCode:=E_EventCode.CRIT_EXPORT_OVER_LPI_30S, bRaised:=TRUE,
+                rParam1:=Export_mag, rParam2:=LPI_mag, uMachState := CurrentState);
+            NextState := E_MachineState.STOP;
+    	
+        // ── PRIORIDADE 4: Sub-estados (nenhuma condição de STOP imediata) ──
+    
         ELSE
-    		// ══════════════════════════════════════════════════════════
     		// SUB-ESTADOS SIMPLIFICADOS
     		CASE FailState OF
     	
     			E_FailState.FS_INIT:
     			
-    				// Sinalização
-    				GVL_Main.LedYellowOut := TRUE;
+    				GVL_Main.LedYellowOut := TRUE;										// Sinalização
     				GVL_Main.LedGreenOut := FALSE;
-    				// Reinicializa índices de escrita
-    				tonFailSafeRecovery(IN := FALSE);
+    
+    				tonFailSafeRecovery(IN := FALSE);									// Reinicializa índices de escrita
     				tonMedidorTimeout(IN := FALSE); 
-    				// Zera setpoints
-    				FOR i := 1 TO GVL_Main.NMAXINVERSORES DO
-    					GVL_Main.P_inv_kW[i] := 0.0;
-    					GVL_Main.P_inv_Percent[i] := 0.0;
-    					GVL_Main.Q_inv_kvar[i] := 0.0;
-    				END_FOR
+    				RecoveryCycleCount := 0;
+    
+                    IF NOT bFailInitDone THEN
+                        FOR i := 1 TO GVL_Main.NMAXINVERSORES DO
+                            GVL_Main.P_inv_kW[i] := 0.0;
+                            GVL_Main.P_inv_Percent[i] := 0.0;
+                            GVL_Main.Q_inv_kvar[i] := 0.0;
+                        END_FOR
+                        fbControle(bReset:=TRUE);
+                        bFailInitDone := TRUE;
+                    END_IF					
+    				
     				PrevFail := FailState;   
     				FailState := E_FailState.FS_FORCE_ZERO;	
     				GVL_ALARM_MANAGER.CRIT_FAIL_ENTRY:=TRUE;	
@@ -486,43 +518,94 @@ END_VAR
     					trigInv          := GVL_Main.trigInvCOM200,
     					pInvPtr          := GVL_Main.pInversores200
     				);          
-    				IF fbWriteCOM1.Done AND fbWriteCOM2.Done THEN
-    					FailState := E_FailState.FS_VALIDATE;	
-    				END_IF
+                    IF fbWriteCOM1.Done AND fbWriteCOM2.Done THEN
+                        IF fbWriteCOM1.bCritical OR fbWriteCOM2.bCritical THEN
+                            // ❌ Escrita falhou
+                            FailWriteRetryCount := FailWriteRetryCount + 1;
+                            GVL_ALARM_MANAGER.CRIT_FAIL_WRITE_FAILED := TRUE;
+                            FC_LogEvent(eCode:=E_EventCode.CRIT_FAIL_WRITE_ZERO_FAILED,
+                                bRaised:=TRUE,
+                                rParam1:=TO_REAL(FailWriteRetryCount), rParam2:=0.0,
+                                uMachState := CurrentState);
+    
+                            IF FailWriteRetryCount >= MAX_FAIL_WRITE_RETRIES THEN
+                                // ❌ Esgotou tentativas → STOP
+                                FC_LogEvent(eCode:=E_EventCode.CRIT_FAIL_WRITE_EXHAUSTED,
+                                    bRaised:=TRUE,
+                                    rParam1:=TO_REAL(FailWriteRetryCount), rParam2:=0.0,
+                                    uMachState := CurrentState);
+                                NextState := E_MachineState.STOP;
+                            ELSE
+                                PrevFail := E_FailState.FS_INIT;
+                            END_IF
+                        ELSE
+                            // ✅ Escrita OK
+                            FailWriteRetryCount := 0;
+                            GVL_ALARM_MANAGER.CRIT_FAIL_WRITE_FAILED := FALSE;
+                            FailState := E_FailState.FS_VALIDATE;
+                        END_IF
+                    END_IF
     	
     			E_FailState.FS_VALIDATE:
-    				// Recuperação: P dentro da zona de controle (≤ LPI + 10% Pnom)
-    	
-    				IF (fbReadMeas.result = E_ModbusResult.DONE) AND (Export_mag <= LPI_mag) AND MedidorOK THEN
-    				   
-    					tonFailSafeRecovery(IN := TRUE, PT := T#10S);									// precisa manter por 10 segundos para considerar recuperado
-    					IF tonFailSafeRecovery.Q THEN
-    						// Recuperação automática
-    						FailState := E_FailState.FS_INIT;
-    						ton15s(IN := FALSE);
-    						ton30s(IN := FALSE);
-    						tonMedidorTimeout(IN := FALSE);
-    						tonFailSafeRecovery(IN := FALSE);
-    						GVL_Main.LedYellowOut := FALSE;
-    						FC_LogEvent(eCode:=E_EventCode.INFO_FAIL_RECOVERY,bRaised:=TRUE,
-    										rParam1:=Export_mag,rParam2:=LPI_mag,uMachState := CurrentState);	
-    						GVL_ALARM_MANAGER.CRIT_FAIL_ENTRY:=FALSE;						
-    						NextState := E_MachineState.READ;
-    					END_IF				
-    				ELSE
-    					tonFailSafeRecovery(IN := FALSE);												// ❌ Condições NÃO OK: reseta recuperação e testa timeout		
-    					tonMedidorTimeout(IN := (fbReadMeas.result <> E_ModbusResult.DONE), PT := T#5S);// ❌ TIMEOUT de medidor (5s sem leitura válida)
+        			// ────────────────────────────────────────────────────────────────
+                    // CRITÉRIOS DE RECUPERAÇÃO EXPLÍCITOS
+                    bMeasRecovered := (fbReadMeas.result = E_ModbusResult.DONE) AND MedidorOK;
+                    bExportOK := (Export_mag <= LPI_mag);
+                    bComRecovered := (NOT fbWriteCOM1.bCritical) AND (NOT fbWriteCOM2.bCritical);
+                    bAllRecoveryOK := bMeasRecovered AND bExportOK AND bComRecovered;
     
-    					GVL_ALARM_MANAGER.CRIT_MEAS_TIMEOUT_IN_FAIL:=tonMedidorTimeout.Q;
-    					IF tonMedidorTimeout.Q THEN														// ❌ STOP: Perda de visibilidade da planta
-    						FC_LogEvent(eCode:=E_EventCode.CRIT_MEAS_TIMEOUT_IN_FAIL,bRaised:=TRUE,
-    										rParam1:=Export_mag,rParam2:=LPI_mag,uMachState := CurrentState);
-    						NextState := E_MachineState.STOP;
-    						tonMedidorTimeout(IN := FALSE);  // Reset timer
-    					END_IF
-    				END_IF
-    		END_CASE
-    	END_IF
+                    IF bAllRecoveryOK THEN
+                        IF RecoveryCycleCount < RECOVERY_CYCLES THEN
+                            RecoveryCycleCount := RecoveryCycleCount + 1;
+                        END_IF
+    
+                        tonFailSafeRecovery(IN := TRUE, PT := T#10S);
+                        bRecoveryApproved := (RecoveryCycleCount >= RECOVERY_CYCLES) AND tonFailSafeRecovery.Q;
+    
+                        IF bRecoveryApproved THEN
+                            // ✅ RECUPERAÇÃO APROVADA — limpa tudo
+                            FailState := E_FailState.FS_INIT;
+                            bFailInitDone := FALSE;
+                            ton15s(IN := FALSE);
+                            ton30s(IN := FALSE);
+                            tonMedidorTimeout(IN := FALSE);
+                            tonFailSafeRecovery(IN := FALSE);
+                            tonFailGlobalTimeout(IN := FALSE);
+                            RecoveryCycleCount := 0;
+                            FailWriteRetryCount := 0;
+                            ContaMeasModBusErros := 0;
+                            ContaMeasModBusTimeOut := 0;
+                            fbControle(bReset:=TRUE);
+                            GVL_Main.LedYellowOut := FALSE;
+                            GVL_ALARM_MANAGER.CRIT_FAIL_ENTRY := FALSE;
+                            GVL_ALARM_MANAGER.CRIT_FAIL_WRITE_FAILED := FALSE;
+                            GVL_ALARM_MANAGER.CRIT_FAIL_GLOBAL_TIMEOUT := FALSE;
+                            FC_LogEvent(eCode:=E_EventCode.INFO_FAIL_RECOVERY, bRaised:=TRUE,
+                                rParam1:=Export_mag, rParam2:=LPI_mag,
+                                uMachState := CurrentState);
+                            NextState := E_MachineState.READ;
+                        END_IF
+    
+                    ELSE
+                        // ❌ Condições NÃO OK
+                        RecoveryCycleCount := 0;
+                        tonFailSafeRecovery(IN := FALSE);
+    
+                        tonMedidorTimeout(IN := (NOT bMeasRecovered), PT := T#5S);
+                        GVL_ALARM_MANAGER.CRIT_MEAS_TIMEOUT_IN_FAIL := tonMedidorTimeout.Q;
+    
+                        IF tonMedidorTimeout.Q THEN
+                            FC_LogEvent(eCode:=E_EventCode.CRIT_MEAS_TIMEOUT_IN_FAIL,
+                                bRaised:=TRUE,
+                                rParam1:=Export_mag, rParam2:=LPI_mag,
+                                uMachState := CurrentState);
+                            tonMedidorTimeout(IN := FALSE);
+                            NextState := E_MachineState.STOP;
+                        END_IF
+                    END_IF
+    
+            END_CASE
+        END_IF
     
     // ────────────────────────────────────────────────────────────────
     E_MachineState.STOP:
