@@ -62,12 +62,13 @@ VAR
     PFMAX 			: REAL := 1.0;
 	
 	// variaveis auxiliares
+	Pt_last			: REAL;
 	nErrors 		: UINT := 0;
 	SomaP			: REAL;
 	SomaQ 			: REAL;
 	Calculado 		: REAL;
 	Tolerancia  	: REAL :=0.05;
-	Pt_last 		: REAL := 0.0;
+	Pt_lastatus		: REAL := 0.0;
     frozen_count 	: UINT := 0;
 	FREEZE_THRESHOLD: UINT := 10;  		// 10 ciclos
 	bFirstRun		: BOOL :=TRUE;
@@ -290,7 +291,7 @@ END_VAR
     	END_IF
     END_IF
     
-    Pt_last := Pt;
+    Pt_lastatus:= Pt;
     // ═══════════════════════════════════════════════════════════════
     // 6. TRATAMENTO FINAL DE ERRO/SUCESSO
     // ═══════════════════════════════════════════════════════==══════

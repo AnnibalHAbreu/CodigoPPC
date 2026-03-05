@@ -60,5 +60,12 @@ VAR_GLOBAL
 	CRIT_FAIL_WRITE_FAILED          : BOOL := FALSE;    // Escrita zero falhou (inversores não responderam)
 	CRIT_FAIL_WRITE_EXHAUSTED       : BOOL := FALSE;    // Esgotou retentativas de escrita zero → STOP
 	CRIT_FAIL_GLOBAL_TIMEOUT        : BOOL := FALSE;    // Permaneceu em FAIL além do máximo permitido
+	
+	    // ── TURNOFF ──
+    ALARM_TURNOFF_ACTIVE            : BOOL := FALSE;    // MachineState = TURNOFF
+    CRIT_TURNOFF_WRITE_EXHAUSTED    : BOOL := FALSE;    // Escrita zero esgotou tentativas
+    CRIT_TURNOFF_VERIFY_TIMEOUT     : BOOL := FALSE;    // Timeout verificação geração
+    CRIT_TURNOFF_K2_NOT_OPENED      : BOOL := FALSE;    // K2 não abriu após trip controlado
+	CRIT_TURNOFF_K1_NOT_OPENED      : BOOL := FALSE;    // K1 não abriu após comando
 
 END_VAR

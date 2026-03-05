@@ -238,6 +238,32 @@ END_VAR
             FC_EventCodeToString := 'STOP: K2 nao abriu';
         E_EventCode.CRIT_STATE_CORRUPTION:
             FC_EventCodeToString := 'Sistema: corrupcao de estado';
+    		
+    	// TURNOFF (0x19xx)
+    	E_EventCode.INFO_TURNOFF_ENTRY:
+    		FC_EventCodeToString := 'TURNOFF: iniciando desligamento controlado';
+    	E_EventCode.INFO_TURNOFF_ZERO_SENT:
+    		FC_EventCodeToString := 'TURNOFF: setpoints zero enviados';
+    	E_EventCode.INFO_TURNOFF_EXPORT_CONFIRMED:
+    		FC_EventCodeToString := 'TURNOFF: geracao zero confirmada';
+    	E_EventCode.INFO_TURNOFF_K1_DISABLED:
+    		FC_EventCodeToString := 'TURNOFF: K1 desativado';
+        E_EventCode.INFO_TURNOFF_K2_TRIPPED:
+            FC_EventCodeToString := 'TURNOFF: K2 trip comandado';
+        E_EventCode.INFO_TURNOFF_K2_CONFIRMED:
+            FC_EventCodeToString := 'TURNOFF: K2 aberto confirmado';
+    	E_EventCode.INFO_TURNOFF_DONE:
+    		FC_EventCodeToString := 'TURNOFF: desligamento concluido';
+    	E_EventCode.WARN_TURNOFF_WRITE_RETRY:
+    		FC_EventCodeToString := 'TURNOFF: retry escrita zero';
+    	E_EventCode.CRIT_TURNOFF_WRITE_EXHAUSTED:
+    		FC_EventCodeToString := 'TURNOFF: escrita zero esgotou -> STOP';
+    	E_EventCode.CRIT_TURNOFF_VERIFY_TIMEOUT:
+    		FC_EventCodeToString := 'TURNOFF: timeout verificacao -> STOP';
+        E_EventCode.CRIT_TURNOFF_K2_NOT_OPENED:
+            FC_EventCodeToString := 'TURNOFF: K2 nao abriu';
+    	E_EventCode.CRIT_TURNOFF_K1_NOT_OPENED:
+    		FC_EventCodeToString := 'TURNOFF: K1 nao abriu -> STOP';
     
     ELSE
         FC_EventCodeToString := 'Evento desconhecido';

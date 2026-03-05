@@ -23,7 +23,8 @@ VAR
 	fbReadMeas 				: FB_ModBus;
 	fbValidaDados			: FB_ValidaDados;
     fbWriteCOM1 			: FB_WriteCom;
-    fbWriteCOM2 			: FB_WriteCom;	
+    fbWriteCOM2 			: FB_WriteCom;
+  	fbTurnOff 				: FB_TurnOff;	
 	
 	// ══════════════════════════════════════════════════════════
     // Máquina de Estados
@@ -38,11 +39,18 @@ VAR
     // STOP: Trip e Reset Manual
     // ══════════════════════════════════════════════════════════
     StopResetCmd      		: BOOL := FALSE;
-    rTrigReset        		: R_TRIG;
     PrevState     			: E_MachineState := E_MachineState.START; 	// guarda o estado anterior
     ResetCOM_Write   		: BOOL;       								// pulso de detecção ao entrar em WRITE
 	ResetCOM_FailSafe   	: BOOL;       								// pulso de detecção ao entrar em WRITE
     
+	// ══════════════════════════════════════════════════════════
+	// IHM triggers
+	// ══════════════════════════════════════════════════════════
+    rTrigStartReset 		: R_TRIG;
+    rTrigTurnOff    		: R_TRIG;
+	xStartResetEdge  : BOOL;
+	xTurnOffEdge     : BOOL;
+	
     // ══════════════════════════════════════════════════════════
     // Timers Normativos (DIS-NOR-033)
     // ══════════════════════════════════════════════════════════
@@ -71,7 +79,7 @@ VAR
     // ══════════════════════════════════════════════════════════
     // Validação Cruzada
     // ══════════════════════════════════════════════════════════
-    Pt_Last           		: REAL := 0.0;
+    Pt_Lastatus          		: REAL := 0.0;
     P_inv_sum         		: REAL := 0.0;
     
     // ══════════════════════════════════════════════════════════
@@ -129,6 +137,24 @@ VAR
 END_VAR
 
     // ════════════════════════════════════════════════════════════════
+    // IHM TRIGGERs dos botões
+    // ════════════════════════════════════════════════════════════════
+    
+    // Start/Reset (IHM)
+    rTrigStartReset(CLK := GVL_Main.HMI_StartResetButton);
+    IF rTrigStartReset.Q THEN
+        GVL_Main.HMI_StartResetButton := FALSE;   // consome IHM
+    END_IF
+    xStartResetEdge := rTrigStartReset.Q;
+    
+    // TurnOff (IHM)
+    rTrigTurnOff(CLK := GVL_Main.HMI_TurnOffButton);
+    IF rTrigTurnOff.Q THEN
+        GVL_Main.HMI_TurnOffButton := FALSE;      // consome IHM
+    END_IF
+    xTurnOffEdge := rTrigTurnOff.Q;
+    
+    // ════════════════════════════════════════════════════════════════
     // MÁQUINA DE ESTADOS PRINCIPAL
     // ════════════════════════════════════════════════════════════════
     
@@ -136,7 +162,99 @@ END_VAR
     NextState := CurrentState;
     
     CASE CurrentState OF
+    
+    E_MachineState.TURNOFF:
+    
+        // mantém medição viva
+        fbReadMeas(tTimeout := T#250MS,trigInv  := GVL_Main.trigMedidor100,pSlave:= GVL_Main.pMedidor100^);
     	
+        IF fbReadMeas.result = E_ModbusResult.DONE THEN
+            fbValidaDados(Meas_Device := GVL_Persis.MeasDeviceType);
+        END_IF
+    
+        fbTurnOff(
+            xEnable          := TRUE,
+            xStartResetEdge  := xStartResetEdge,
+            xK2_in           := GVL_Main.K2_in,
+            rPt_kW           := GVL_Main.Pt,
+            xMeasDataOK      := fbValidaDados.bDadosOK,
+            rP_Threshold_kW  := REAL#0.5,
+            tVerifyTimeout   := T#30S,
+            tK2Timeout       := T#2S,
+            uMaxWriteRetries := UINT#3,
+            xCom1Done        := fbWriteCOM1.Done,
+            xCom1Critical    := fbWriteCOM1.bCritical,
+            xCom2Done        := fbWriteCOM2.Done,
+            xCom2Critical    := fbWriteCOM2.bCritical
+        );
+    
+        // ações (OPÇÃO B)
+        IF fbTurnOff.xReqZeroSetpoints THEN
+            FOR i := 1 TO GVL_Main.NMAXINVERSORES DO
+                GVL_Main.P_inv_kW[i]      := 0.0;
+                GVL_Main.P_inv_Percent[i] := 0.0;
+                GVL_Main.Q_inv_kvar[i]    := 0.0;
+            END_FOR
+        END_IF
+    
+        IF fbTurnOff.xReqResetPI THEN
+            fbControle(bReset := TRUE);
+        END_IF
+    
+        // MODO 1: escrever zero só quando habilitado
+        IF fbTurnOff.xWriteZeroEnable THEN
+            fbWriteCOM1(
+                Reset            := fbTurnOff.xReqResetCOM,
+                tTimeout         := T#100MS,
+                nInverters       := GVL_Main.NInversoresCOM01,
+                nChannelsToWrite := GVL_Main.nChannelsToWriteCOM1,
+                maxErrors        := GVL_Main.MAX_CH1_MODBUS_ERROS,
+                maxTimeouts      := GVL_Main.MAX_CH1_MODBUS_TIMEOUTS,
+                trigInv          := GVL_Main.trigInvCOM100,
+                pInvPtr          := GVL_Main.pInversores100
+            );
+    
+            fbWriteCOM2(
+                Reset            := fbTurnOff.xReqResetCOM,
+                tTimeout         := T#100MS,
+                nInverters       := GVL_Main.NInversoresCOM02,
+                nChannelsToWrite := GVL_Main.nChannelsToWriteCOM2,
+                maxErrors        := GVL_Main.MAX_CH2_MODBUS_ERROS,
+                maxTimeouts      := GVL_Main.MAX_CH2_MODBUS_TIMEOUTS,
+                trigInv          := GVL_Main.trigInvCOM200,
+                pInvPtr          := GVL_Main.pInversores200
+            );
+        ELSE
+            fbWriteCOM1(Reset := TRUE);
+            fbWriteCOM2(Reset := TRUE);
+        END_IF
+    
+        IF fbTurnOff.xLogEvent THEN
+            FC_LogEvent(
+                eCode      := fbTurnOff.eLogCode,
+                bRaised    := TRUE,
+                rParam1    := fbTurnOff.rLogParam1,
+                rParam2    := fbTurnOff.rLogParam2,
+                uMachState := CurrentState
+            );
+        END_IF
+    
+        // aplica saídas
+        GVL_Main.K1_out := fbTurnOff.xK1_out;
+        GVL_Main.K2_out := fbTurnOff.xK2_out;
+        GVL_Main.LedRedOut    := fbTurnOff.xLedRed;
+        GVL_Main.LedYellowOut := fbTurnOff.xLedYellow;
+        GVL_Main.LedGreenOut  := fbTurnOff.xLedGreen;
+    
+        IF fbTurnOff.xRequestStop THEN
+            NextState := E_MachineState.STOP;
+        ELSIF fbTurnOff.xRequestStart THEN
+            NextState := E_MachineState.START;
+        ELSE
+            NextState := E_MachineState.TURNOFF;
+        END_IF
+    
+    
     // ────────────────────────────────────────────────────────────────
     // START: Inicialização (fbStart + K1/K2)
     E_MachineState.START:
@@ -666,10 +784,8 @@ END_VAR
         // C. AGUARDA RESET MANUAL PELO OPERADOR
     
         E_StopState.STOP_LATCHED:
-     
-    		rTrigReset(CLK := StopResetCmd OR GVL_Main.BotaoReset);									// comandado pela IHM ou por botão frontal
         	
-    		IF rTrigReset.Q THEN																	// Borda de subida: avalia condições básicas UMA VEZ
+    		IF xStartResetEdge THEN																	// Borda de subida: avalia condições básicas UMA VEZ
     			StopResetCmd := FALSE;
     			StopState:= E_StopState.STOP_INIT;													// prepara próxima entrada
     			NextState := E_MachineState.START;
@@ -677,18 +793,43 @@ END_VAR
     	END_CASE
     	
     // ────────────────────────────────────────────────────────────────
+    
     E_MachineState.ERRO:
-    	// não faz nada, fica aguardando reset geral
-    	// mandar mensagem de erro para a IHM
-    	GVL_Main.LedRedOut := TRUE;				// indica que houve falha
+        GVL_Main.LedRedOut := TRUE;
         GVL_Main.LedYellowOut := FALSE;
         GVL_Main.LedGreenOut := FALSE;
+    
+        IF xStartResetEdge THEN
+            IF (NOT GVL_Main.K1_in) AND (NOT GVL_Main.K2_in) THEN
+                NextState := E_MachineState.START;
+            ELSE
+                FC_LogEvent(eCode:=E_EventCode.WARN_STOP_RESET_DENIED,bRaised:=TRUE,rParam1:=0.0,rParam2:=0.0,uMachState := CurrentState);
+            END_IF
+        END_IF
     	
     END_CASE
     
-    IF (NextState = E_MachineState.STOP)  AND (CurrentState <> E_MachineState.STOP) THEN
+    
+    // ────────────────────────────────────────────────────────────────
+    // Guarda de transição para TURNOFF (comando voluntário do operador)
+    // Aceita TURNOFF apenas a partir de estados operacionais
+    // Rejeita se já em FAIL/STOP/ERRO/START/TURNOFF
+    // Aceita TURNOFF apenas a partir de estados operacionais
+    IF xTurnOffEdge
+       AND (CurrentState = E_MachineState.READ
+            OR CurrentState = E_MachineState.CONTROL
+            OR CurrentState = E_MachineState.WRITE
+            OR CurrentState = E_MachineState.IDLE) THEN
+        NextState := E_MachineState.TURNOFF;
+    END_IF
+    
+    // ── Guarda existente para STOP (manter inalterada) ──
+    IF (NextState = E_MachineState.STOP) AND (CurrentState <> E_MachineState.STOP) THEN
         StopState := E_StopState.STOP_INIT;
     END_IF
+    
+    // Atualiza flag de status
+    GVL_ALARM_MANAGER.ALARM_TURNOFF_ACTIVE := (NextState = E_MachineState.TURNOFF);
     
     PrevState := CurrentState;
     GVL_Main.MachineState := NextState;

@@ -31,11 +31,14 @@ VAR_GLOBAL
   	LedYellowOut  				: BOOL;   							// DI X5_4 - K1 fechou - permissivo ok
   	LedGreenOut  				: BOOL;   							// DI X5_5 - K2 fechou - acende verde -tudo pronto
 
-		
 	// Entredas digitais
 	K1_in        				: BOOL;                				// DI X12_1 - contato auxliar de K1_in=1 => K1 fechado (permite gerar)
   	K2_in        				: BOOL;                				// DI X12_2 - contato auxliar de K2_in=1 => K2 fechado (permite gerar) trip desarmado
-  	BotaoReset     				: BOOL;                				// DI X12_3 - botao frontal para comandar reset geral quando no estado STOP
+
+    // Comandos da IHM
+    // ─────────────────────────────────────────────────────────────
+  	HMI_StartResetButton     	: BOOL := FALSE;           			// DI X12_3 - botao frontal para comandar ligar/reset geral quando no estado STOP
+    HMI_TurnOffButton    		: BOOL := FALSE;  					// DI X12_4 "Desligar controlado"
 
 
     //    Medições (REAL) - Tensões (V), Correntes (A), Potências Ativas (W), Potências Reativas (var), PF (adimensional, sinal: + indutivo, - capacitivo)

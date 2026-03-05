@@ -68,6 +68,14 @@ TYPE E_EventCode :
     INFO_STOP_RESET_APPROVED        := 16#1801,  // Reset manual aprovado
     INFO_STOP_RESET_WAITING         := 16#1802,  // Aguardando Pt estável para reset
 
+    // ── TURNOFF — Desligamento controlado 
+    INFO_TURNOFF_ENTRY              := 16#1900,  // Entrada no estado TURNOFF
+    INFO_TURNOFF_ZERO_SENT          := 16#1901,  // Setpoints zero enviados com sucesso
+    INFO_TURNOFF_EXPORT_CONFIRMED   := 16#1902,  // Geração confirmada próxima de zero
+    INFO_TURNOFF_K1_DISABLED        := 16#1903,  // K1 desativado
+    INFO_TURNOFF_K2_TRIPPED         := 16#1904,  // K2 acionado (trip controlado)
+    INFO_TURNOFF_K2_CONFIRMED       := 16#1905,  // K2 abertura confirmada por contato aux
+    INFO_TURNOFF_DONE               := 16#1906,  // Desligamento controlado concluído
     // ══════════════════════════════════════════════════════════════
     // WARNING (0x2xxx) — desvio tolerável, sem ação de potência
     // ══════════════════════════════════════════════════════════════
@@ -101,6 +109,8 @@ TYPE E_EventCode :
     // ── STOP/reset
     WARN_STOP_RESET_DENIED          := 16#2800,  // Reset manual negado
 
+    // ── TURNOFF — Desligamento controlado 
+    WARN_TURNOFF_WRITE_RETRY        := 16#2900,  // Tentativa de escrita zero falhou (retry)
     // ══════════════════════════════════════════════════════════════
     // ALARM (0x4xxx) — falha que requer atenção, pode degradar
     // ══════════════════════════════════════════════════════════════
@@ -221,7 +231,13 @@ TYPE E_EventCode :
     CRIT_STOP_ENTRY                 := 16#8800,  // Entrada no estado STOP
     CRIT_K2_NOT_OPENED              := 16#8801,  // K2 não abriu após 2s → FaultLatch
     CRIT_STATE_CORRUPTION           := 16#8802,  // MachineState inválido
-	CRIT_FAIL_ENTRY                 := 16#8803   // Entrada no estado FAIL
+	CRIT_FAIL_ENTRY                 := 16#8803,  // Entrada no estado FAIL
 
+    // ── TURNOFF — Desligamento controlado 
+    CRIT_TURNOFF_WRITE_EXHAUSTED    := 16#8900,  // Esgotou tentativas escrita → STOP
+    CRIT_TURNOFF_VERIFY_TIMEOUT     := 16#8901,  // Timeout verificação geração → STOP
+    CRIT_TURNOFF_K2_NOT_OPENED      := 16#8902,  // K2 não abriu após trip → latch (mesmo que STOP)
+	CRIT_TURNOFF_K1_NOT_OPENED      := 16#8903   // K1 não abriu após comando
+	
 ) UINT;
 END_TYPE
