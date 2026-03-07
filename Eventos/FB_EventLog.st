@@ -27,7 +27,7 @@
 FUNCTION_BLOCK FB_EventLog
 VAR RETAIN
     // ── Ring buffer persistente ──
-    aBuffer         : ARRAY[0..(GVL_EventLog.MAX_EVENT_ENTRIES - 1)] OF ST_EventEntry;
+    aBuffer         : ARRAY[0..(GVL_Log.MAX_EVENT_ENTRIES - 1)] OF ST_EventEntry;
     nHead           : UINT := 0;            // Próxima posição de escrita
     bWrapped        : BOOL := FALSE;        // TRUE = buffer já deu pelo menos uma volta completa
     nTotalLogged    : UDINT := 0;           // Contador total desde último factory reset (para telemetria)
@@ -86,7 +86,7 @@ END_VAR
         stLastEvent := aBuffer[nHead];
         
         // ── 4. Avançar ponteiro circular ──
-        nHead := (nHead + 1) MOD GVL_EventLog.MAX_EVENT_ENTRIES;
+        nHead := (nHead + 1) MOD GVL_Log.MAX_EVENT_ENTRIES;
         
         // ── 5. Detectar wrap-around ──
         IF nHead = 0 THEN
@@ -98,7 +98,7 @@ END_VAR
         
         // nCount = quantas entradas válidas existem
         IF bWrapped THEN
-            nCount := GVL_EventLog.MAX_EVENT_ENTRIES;
+            nCount := GVL_Log.MAX_EVENT_ENTRIES;
             bOverflow := TRUE;
         ELSE
             nCount := nHead;    // Antes do wrap, nHead = número de entradas escritas
@@ -146,7 +146,7 @@ END_VAR
         // Índice reverso N = nHead - 1 - N (com wrap-around).
         nTemp := UINT_TO_INT(nHead) - 1 - UINT_TO_INT(nReverseIndex);
         IF nTemp < 0 THEN
-            nTemp := nTemp + UINT_TO_INT(GVL_EventLog.MAX_EVENT_ENTRIES);
+            nTemp := nTemp + UINT_TO_INT(GVL_Log.MAX_EVENT_ENTRIES);
         END_IF
         nActualIdx := INT_TO_UINT(nTemp);
         
@@ -159,7 +159,7 @@ END_VAR
         i : UINT;
     END_VAR
 
-        FOR i := 0 TO (GVL_EventLog.MAX_EVENT_ENTRIES - 1) DO
+        FOR i := 0 TO (GVL_Log.MAX_EVENT_ENTRIES - 1) DO
             aBuffer[i].tTimestamp   := 0;
             aBuffer[i].eCode        := E_EventCode.EVT_NONE;
             aBuffer[i].bRaised      := FALSE;

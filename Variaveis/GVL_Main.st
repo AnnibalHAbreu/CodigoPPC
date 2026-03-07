@@ -18,11 +18,11 @@ END_VAR
 VAR_GLOBAL
 	timestampUTC				: UDINT;
 	Result 						: RTS_IEC_RESULT;
-  	ControlCycle    			: REAL;            					// Tempo de ciclo de controle em SEGUNDOS (ex: 1.0 = 1 segundo)
+  	ControlCycle    			: REAL:=1;            					// Tempo de ciclo de controle em SEGUNDOS (ex: 1.0 = 1 segundo)
 	MachineState				: E_MachineState:= E_MachineState.START;
 	fbEventLog 					: FB_EventLog;						// Function Block de registro de eventos 
 	
-	CYCLE_TIME_TOLERANCE		: UDINT := 1100;  					// tolerancia de ultrapassagem para tempo de ciclo de controle de 10%
+	CYCLE_TIME_TOLERANCE		: UDINT := 1200;  					// tolerancia de ultrapassagem para tempo de ciclo de controle de 20%
 	
 	// Saidas digitais
   	K1_out  					: BOOL;   							// DI X5_1 - K1 - controle permissivo
@@ -78,12 +78,10 @@ VAR_GLOBAL
 	MAX_CH1_MODBUS_TIMEOUTS		: UINT := 0;						// < 50% da quantidade de inversores sem ir para FAIL
 	MAX_CH2_MODBUS_ERROS		: UINT := 0;						// < 50% da quantidade de inversores sem ir para FAIL
 	MAX_CH2_MODBUS_TIMEOUTS		: UINT := 0;						// < 50% da quantidade de inversores sem ir para FAIL
-	NInversoresCOM01    		: UINT :=0;
-	NInversoresCOM02    		: UINT :=0;
 	trigInvCOM100				: ARRAY[1..15, 0..4] OF BOOL;
 	trigInvCOM200				: ARRAY[1..15, 0..4] OF BOOL;
-	nChannelsToWriteCOM1	 	: UINT :=2;
-	nChannelsToWriteCOM2	 	: UINT :=2;
+	NInversoresCOM01    		: UINT :=0;
+	NInversoresCOM02    		: UINT :=0;
     pInversores100 	: ARRAY [1..15] OF POINTER TO ModbusSlaveComPort; 				// array de pointers para Inversor01..Inversor15 (apenas ponteiros - não recria instâncias)	
 	pInversores200 	: ARRAY [1..15] OF POINTER TO ModbusSlaveComPort; 				// array de pointers para Inversor01..Inversor15 (apenas ponteiros - não recria instâncias)
 	

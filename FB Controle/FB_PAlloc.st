@@ -25,23 +25,23 @@ END_VAR
     
     FOR i := 1 TO GVL_Main.NMAXINVERSORES DO     
         
-        IF GVL_Persis.InvActivePower[i] > 0.0 THEN
+        IF GVL_Pers.InvActivePower[i] > 0.0 THEN
             
             // Proporção do inversor
-            proportion := GVL_Persis.InvActivePower[i] / GVL_Main.InstalledPower;
+            proportion := GVL_Pers.InvActivePower[i] / GVL_Main.InstalledPower;
             
             // P proporcional
             P_target_i := P_total_cmd_kW * proportion;
             
             // Limita apenas pela nominal (ignora S_max por enquanto)
-            P_actual_i := MIN(P_target_i, GVL_Persis.InvActivePower[i]);
+            P_actual_i := MIN(P_target_i, GVL_Pers.InvActivePower[i]);
             
             // Armazena P
             GVL_Main.P_inv_kW[i] := P_actual_i;
             
             // Setpoint percentual
-            IF GVL_Persis.InvActivePower[i] > 0.0 THEN
-                GVL_Main.P_inv_Percent[i] := (P_actual_i / GVL_Persis.InvActivePower[i]) * 100.0;
+            IF GVL_Pers.InvActivePower[i] > 0.0 THEN
+                GVL_Main.P_inv_Percent[i] := (P_actual_i / GVL_Pers.InvActivePower[i]) * 100.0;
             ELSE
                 GVL_Main.P_inv_Percent[i] := 0.0;
             END_IF

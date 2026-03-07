@@ -64,7 +64,7 @@ END_VAR
     
     FOR i := 1 TO GVL_Main.NMAXINVERSORES DO
         
-        IF GVL_Persis.InvActivePower[i] > 0.0 THEN
+        IF GVL_Pers.InvActivePower[i] > 0.0 THEN
             
             // ────────────────────────────────────────────────────────
             // A. LÊ P JÁ ALOCADO
@@ -74,7 +74,7 @@ END_VAR
             // ────────────────────────────────────────────────────────
             // B. CALCULA Q MÁXIMO DISPONÍVEL
             // ────────────────────────────────────────────────────────
-            S_available_i := GVL_Persis.InvSmaxPower[i];
+            S_available_i := GVL_Pers.InvSmaxPower[i];
             
             IF S_available_i > ABS(P_actual_i) THEN
                 Q_max_i := SQRT((S_available_i * S_available_i) - (P_actual_i * P_actual_i));

@@ -68,22 +68,22 @@ END_VAR
     // Converte deadband (%) para kW (mínimo 1 kW)
     // Recalcula apenas se InstalledPower mudou
     IF lastInstalledPower <> GVL_Main.InstalledPower THEN
-        Deadband_P_kW := MAX(1.0, GVL_Main.InstalledPower * (GVL_Persis.Deadband_P / 100.0));
-        Droop_Deadband_kW := MAX(1.0, GVL_Main.InstalledPower * (GVL_Persis.Deadband_Droop / 100.0));
-    	Deadband_P_kW := MIN(20.0, MAX(1.0, GVL_Main.InstalledPower * (GVL_Persis.Deadband_P / 100.0)));
-    	Droop_Deadband_kW := MIN(20.0, MAX(1.0, GVL_Main.InstalledPower * (GVL_Persis.Deadband_Droop / 100.0)));		
+        Deadband_P_kW := MAX(1.0, GVL_Main.InstalledPower * (GVL_Pers.Deadband_P / 100.0));
+        Droop_Deadband_kW := MAX(1.0, GVL_Main.InstalledPower * (GVL_Pers.Deadband_Droop / 100.0));
+    	Deadband_P_kW := MIN(20.0, MAX(1.0, GVL_Main.InstalledPower * (GVL_Pers.Deadband_P / 100.0)));
+    	Droop_Deadband_kW := MIN(20.0, MAX(1.0, GVL_Main.InstalledPower * (GVL_Pers.Deadband_Droop / 100.0)));		
         lastInstalledPower := GVL_Main.InstalledPower;
     END_IF
     
     // Limite máximo do droop (fração da potência instalada)
-    P_droop_max_kW := GVL_Persis.Droop_Max * GVL_Main.InstalledPower;
+    P_droop_max_kW := GVL_Pers.Droop_Max * GVL_Main.InstalledPower;
     
     // Calcula droop
     fbDroop(
-        Enable      := GVL_Persis.Droop_Enable,
+        Enable      := GVL_Pers.Droop_Enable,
         bReset      := bReset,                 
         Error_kW    := P_error_kW,
-        K_droop     := GVL_Persis.K_Droop,
+        K_droop     := GVL_Pers.K_Droop,
         Deadband_kW := Droop_Deadband_kW,
         P_max_kW    := P_droop_max_kW
     );
@@ -94,13 +94,13 @@ END_VAR
     fbPI(
         setpoint    := P_error_kW,
         feedback    := 0.0,
-        Kp          := GVL_Persis.Kp_P,
-        Ki          := GVL_Persis.Ki_P,
+        Kp          := GVL_Pers.Kp_P,
+        Ki          := GVL_Pers.Ki_P,
         OutMax      := GVL_Main.InstalledPower,
         OutMin      := 0.0,
         CycleTime   := GVL_Main.ControlCycle,
-    	RampUp      := GVL_Persis.RampUp_P,     
-        RampDown    := GVL_Persis.RampDown_P,    
+    	RampUp      := GVL_Pers.RampUp_P,     
+        RampDown    := GVL_Pers.RampDown_P,    
         Deadband    := Deadband_P_kW,
     	bReset      := bReset          
     );
@@ -123,8 +123,8 @@ END_VAR
     
     fbSafetyMargin(
         P_cmd_raw_kW := P_cmd_raw,
-        Margin_pct := GVL_Persis.SafetyMargin_pct,
-        TC_Power_kW := GVL_Persis.TC_Power_kW
+        Margin_pct := GVL_Pers.SafetyMargin_pct,
+        TC_Power_kW := GVL_Pers.TC_Power_kW
     );
     
     P_cmd_with_margin := fbSafetyMargin.P_cmd_adjusted_kW;
@@ -136,7 +136,7 @@ END_VAR
     
     fbFLimiter(
         P_cmd_in := P_cmd_with_margin,
-        PowerMode := GVL_Persis.PowerMode
+        PowerMode := GVL_Pers.PowerMode
     );
     
     P_cmd_kW := fbFLimiter.P_cmd_out;

@@ -11,28 +11,33 @@ VAR
     // ════════════════════════════════════════════════════════════
     // VARIÁVEIS DE TIMESTAMP
     // ════════════════════════════════════════════════════════════
-    timestampLocal_UDINT : UDINT;           // ✅ Apenas UDINT (sem DINT)
-    offsetSeconds : DINT;                   // Offset em segundos (pode ser negativo)
-    offsetSeconds_ABS : UDINT;              // Valor absoluto do offset
+    timestampLocal_UDINT 	: UDINT;           		// ✅ Apenas UDINT (sem DINT)
+    offsetSeconds 			: DINT;               	// Offset em segundos (pode ser negativo)
+    offsetSeconds_ABS 		: UDINT;              	// Valor absoluto do offset
     
     // ════════════════════════════════════════════════════════════
     // CONVERSÕES DE DATA/HORA
     // ════════════════════════════════════════════════════════════
-    dtNowLocal : DATE_AND_TIME;
-    dataNowLocal : DATE;
-    todNowLocal : TOD;
-    todAsDword : DWORD;
-    hora : INT;
-    diadasemana : INT;
-	semanaindex : BOOL;
+    dtNowLocal 				: DATE_AND_TIME;
+    dataNowLocal 			: DATE;
+    todNowLocal 			: TOD;
+    todAsDword 				: DWORD;
+    hora 					: INT;
+    diadasemana 			: INT;
+	semanaindex 			: BOOL;
     
     // ════════════════════════════════════════════════════════════
     // CACHE DE DATAS ESPECIAIS (Otimização)
     // ════════════════════════════════════════════════════════════
-    lastCheckedDate : DATE := DATE#1970-01-01;      // Última data verificada
-    cachedSpecialDateLimit : REAL := -1.0;          // -1 = inválido
+    lastCheckedDate 		: DATE := DATE#1970-01-01;      // Última data verificada
+    cachedSpecialDateLimit 	: REAL := -1.0;          // -1 = inválido
     
     // ════════════════════════════════════════════════════════════
+    // CACHE DE HORA (Agenda Semanal — Otimização)
+    // ════════════════════════════════════════════════════════════
+    lastCheckedHour : INT := -1;                    // Última hora processada (-1 = inválido/forçar atualização)
+    
+	// ════════════════════════════════════════════════════════════
     // AUXILIARES
     // ════════════════════════════════════════════════════════════
     i : UINT;
@@ -45,8 +50,8 @@ END_VAR
     
     GVL_Main.timestampUTC := TO_UDINT(SysTimeRtcGet(GVL_Main.Result));
     
-    GVL_ALARM_MANAGER.CRIT_RTC_FAIL:=(GVL_Main.Result <> eResultCode.OK);
-    IF GVL_ALARM_MANAGER.CRIT_RTC_FAIL THEN
+    GVL_Alarm.CRIT_RTC_FAIL:=(GVL_Main.Result <> eResultCode.OK);
+    IF GVL_Alarm.CRIT_RTC_FAIL THEN
         // ❌ ERRO: Relógio não disponível
         GVL_Main.MaxExportLimit := 0.0;
     	FC_LogEvent(
@@ -67,7 +72,7 @@ END_VAR
     offsetSeconds := GVL_Main.TIMEZONEOFFSET * 3600;  // Ex: -3 * 3600 = -10800
     
     // Adiciona horário de verão se ativo
-    IF GVL_Persis.bHorarioVerao THEN
+    IF GVL_Pers.bHorarioVerao THEN
         offsetSeconds := offsetSeconds + 3600;      // +1 hora
     END_IF
     
@@ -106,25 +111,33 @@ END_VAR
     // ════════════════════════════════════════════════════════════════
     
     IF dataNowLocal <> lastCheckedDate THEN
-        
-        lastCheckedDate := dataNowLocal;
-        cachedSpecialDateLimit := -1.0;  // Invalida cache
-        
-        FOR i := 1 TO GVL_Main.NDATASESPECIAIS DO
-            
-            // ✅ OTIMIZAÇÃO: Early exit se encontrar data vazia
-            IF GVL_Persis.DatasEspeciais[i] = DATE#1970-01-01 THEN
-                EXIT;  // Resto do array está vazio
-            END_IF
-            
-            // Verifica se é data especial
-            IF GVL_Persis.DatasEspeciais[i] = dataNowLocal THEN
-                cachedSpecialDateLimit := GVL_Persis.SpecialDaySchedule[i];
-                EXIT;  // Encontrou, pára a busca
-            END_IF
-            
-        END_FOR
-        
+    	
+    	lastCheckedDate := dataNowLocal;
+    	cachedSpecialDateLimit := -1.0;  // Invalida cache de data especial
+    	lastCheckedHour := -1;           // ✅ Invalida cache de hora (nova data = nova agenda semanal)
+    	
+    	FOR i := 1 TO GVL_Main.NDATASESPECIAIS DO
+    		
+    		// ✅ OTIMIZAÇÃO: Early exit se encontrar data vazia
+    		IF GVL_Pers.DatasEspeciais[i] = DATE#1970-01-01 THEN
+    			EXIT;  // Resto do array está vazio
+    		END_IF
+    		
+    		// Verifica se é data especial — log emitido aqui (uma vez por mudança de data)
+    		IF GVL_Pers.DatasEspeciais[i] = dataNowLocal THEN
+    			cachedSpecialDateLimit := GVL_Pers.SpecialDaySchedule[i];
+    			FC_LogEvent(
+    				eCode:=E_EventCode.INFO_SPECIAL_DATE_ACTIVE,
+    				bRaised:=TRUE,
+    				rParam1:=0.0,
+    				rParam2:=0.0,
+    				uMachState := GVL_Main.MachineState
+    				);
+    			EXIT;  // Encontrou, pára a busca
+    		END_IF
+    		
+    	END_FOR
+    	
     END_IF
     
     // ════════════════════════════════════════════════════════════════
@@ -132,16 +145,9 @@ END_VAR
     // ════════════════════════════════════════════════════════════════
     
     IF cachedSpecialDateLimit >= 0.0 THEN
-        // Data especial ativa
-        GVL_Main.MaxExportLimit := cachedSpecialDateLimit;
-    	FC_LogEvent(
-    		eCode:=E_EventCode.INFO_SPECIAL_DATE_ACTIVE,
-    		bRaised:=TRUE,
-    		rParam1:=0.0,
-    		rParam2:=0.0,
-    		uMachState := GVL_Main.MachineState
-    		);
-        RETURN;																				// se é data especial, não olha busca por dia e hora, aborta
+    	// Data especial ativa — limite já definido, log já emitido na seção 5
+    	GVL_Main.MaxExportLimit := cachedSpecialDateLimit;
+    	RETURN;	// Se é data especial, não olha agenda semanal
     END_IF
     
     // ════════════════════════════════════════════════════════════════
@@ -150,12 +156,19 @@ END_VAR
     
     // ✅ VALIDAÇÃO: Verifica se índices estão dentro dos limites
     semanaindex:= (diadasemana >= 1 AND diadasemana <= 7) AND (hora >= 0 AND hora <= 23);
-    GVL_ALARM_MANAGER.CRIT_SCHEDULE_INDEX_INVALID:= NOT semanaindex;
+    GVL_Alarm.CRIT_SCHEDULE_INDEX_INVALID:= NOT semanaindex;
     
     IF semanaindex THEN
-        GVL_Main.MaxExportLimit := GVL_Persis.WeekSchedule_kW[diadasemana, hora + 1];     // Acessa agenda semanal
-    ELSE																				  // ❌ ERRO: Índice inválido (não deveria ocorrer)
-        GVL_Main.MaxExportLimit := 0.0;
+    	
+    	// ✅ CACHE DE HORA: Só atualiza limite se a hora mudou desde a última leitura
+    	IF hora <> lastCheckedHour THEN
+    		lastCheckedHour := hora;
+    		GVL_Main.MaxExportLimit := GVL_Pers.WeekSchedule_kW[diadasemana, hora + 1];
+    	END_IF
+    
+    ELSE	// ❌ ERRO: Índice inválido (não deveria ocorrer)
+    	lastCheckedHour := -1;  // Invalida cache para forçar releitura quando índice voltar a ser válido
+    	GVL_Main.MaxExportLimit := 0.0;
     	FC_LogEvent(
     		eCode:=E_EventCode.CRIT_SCHEDULE_INDEX_INVALID,
     		bRaised:=TRUE,
@@ -163,6 +176,6 @@ END_VAR
     		rParam2:=0.0,
     		uMachState := GVL_Main.MachineState
     		);
-        
+    	
     END_IF
 END_FUNCTION_BLOCK

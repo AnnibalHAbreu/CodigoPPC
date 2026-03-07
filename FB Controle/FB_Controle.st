@@ -95,7 +95,7 @@ END_VAR
     // 1. FB_SCHEDULER - Define Limite de Exportação
     // ════════════════════════════════════════════════════════════════
     
-    IF GVL_Persis.OperationMode THEN
+    IF GVL_Pers.OperationMode THEN
     	GVL_Main.MaxExportLimit:=0;				// TRUE = Zero Grid (exportação zero)
     ELSE
     	fbScheduler();   						// Global.MaxExportLimit definido a partir das agendas de horarios no Scheduller
@@ -119,7 +119,7 @@ END_VAR
     // Calcula Q necessário para manter PF = 0.92 com a potência comandada
     fbFFQ(
         P_active_kW := fbPowerCtrl.P_cmd_kW, 
-        PF_target_abs := GVL_Persis.PF_target,
+        PF_target_abs := GVL_Pers.PF_target,
         PF_sign := -1.0                              // capacitivo (negativo)
     );
     
@@ -131,15 +131,15 @@ END_VAR
     
     // Controlador PI de fator de potência
     fbPIQ(
-        SP := GVL_Persis.PF_target,         							// Setpoint de PF (0.92)
+        SP := GVL_Pers.PF_target,         							// Setpoint de PF (0.92)
         PV := PF_measured,              							// PF medido (absoluto)
-    	Kp:= GVL_Persis.Kp_Q,
-    	Ki:= GVL_Persis.Ki_Q,
+    	Kp:= GVL_Pers.Kp_Q,
+    	Ki:= GVL_Pers.Ki_Q,
     	CycleTime:= GVL_Main.ControlCycle,
         P_cmd := fbPowerCtrl.P_cmd_kW,     							// Comando de P (para referência)
-        RampUp := GVL_Persis.RampUp_Q,      							// Rampa de subida (kvar/s)
-        RampDown := GVL_Persis.RampDown_Q,  							// Rampa de descida (kvar/s)
-        DeadbandAbs := GVL_Persis.Deadband_Q, 							// Zona morta de PF
+        RampUp := GVL_Pers.RampUp_Q,      							// Rampa de subida (kvar/s)
+        RampDown := GVL_Pers.RampDown_Q,  							// Rampa de descida (kvar/s)
+        DeadbandAbs := GVL_Pers.Deadband_Q, 							// Zona morta de PF
         Reset := bReset,                 							// Reset
     	bExternal_Saturated := bQ_limit_reached OR bP_limit_reached // FEEDBACK do ciclo anterior - calculado em fbQAlloc.
     );
@@ -183,8 +183,8 @@ END_VAR
     // Armazena flag de saturação para próximo ciclo
     bQ_limit_reached := fbQAlloc.bQ_limit_reached;
     
-    GVL_ALARM_MANAGER.ALARM_Q_LIMITED_BY_SMAX := bQ_limit_reached;
-    IF GVL_ALARM_MANAGER.ALARM_Q_LIMITED_BY_SMAX THEN
+    GVL_Alarm.ALARM_Q_LIMITED_BY_SMAX := bQ_limit_reached;
+    IF GVL_Alarm.ALARM_Q_LIMITED_BY_SMAX THEN
     	FC_LogEvent(eCode:=E_EventCode.WARN_Q_LIMITED_BY_SMAX,bRaised:=TRUE,rParam1:=Q_cmd_kvar,rParam2:=fbQAlloc.Q_allocated_kvar,uMachState := GVL_Main.MachineState);
     END_IF
     
@@ -205,13 +205,13 @@ END_VAR
     // ────────────────────────────────────────────────────────────────
     // 8. STATUS DE PF
     // ────────────────────────────────────────────────────────────────
-    GVL_ALARM_MANAGER.ALARM_PF_BELOW_TARGET:= (fbQAlloc.PF_effective < GVL_Persis.PF_target);
-    IF GVL_ALARM_MANAGER.ALARM_PF_BELOW_TARGET THEN
+    GVL_Alarm.ALARM_PF_BELOW_TARGET:= (fbQAlloc.PF_effective < GVL_Pers.PF_target);
+    IF GVL_Alarm.ALARM_PF_BELOW_TARGET THEN
     	FC_LogEvent(
     		eCode:=E_EventCode.WARN_PF_BELOW_TARGET,
     		bRaised:=TRUE,
     		rParam1:=fbQAlloc.PF_effective,
-    		rParam2:=GVL_Persis.PF_target,
+    		rParam2:=GVL_Pers.PF_target,
     		uMachState := GVL_Main.MachineState
     		);
     END_IF

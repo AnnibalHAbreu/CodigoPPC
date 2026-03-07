@@ -12,128 +12,179 @@ PROGRAM MainProgram
     WRITE   -> IDLE    (depois de tentar escrever em todos inversores, se não estourou RETRIES_WRITE)
     WRITE   -> FAIL    (se falhas de escrita estourarem RETRIES_WRITE)
     IDLE    -> READ    (quando completar 1 segundo de ciclo)
-    FAIL    -> (aguarda ação do operador)
-    STOP    -> (parada controlada, permanece travado)
+    FAIL    -> 		   (coloca o sistema em condição segura, tenta restabelecer sozinho, caso contrário vai para STOP)
+    STOP    ->         (parada controlada, permanece travado - resetado pelo operador por botão ou ihm)
+	TURNOFF ->		   (desligamento comandado pelo operador)
+	ERRO    ->         (situação de erro devido a configuração incorreta - f
 *)
 
 VAR
-    fbStart         		: FB_Startup;        						// executa a inicialização
-    fbControle      		: FB_Controle;		 						// módulo de controle
-	fbChannel       		: ModbusChannel;
-	fbReadMeas 				: FB_ModBus;
-	fbValidaDados			: FB_ValidaDados;
-    fbWriteCOM1 			: FB_WriteCom;
-    fbWriteCOM2 			: FB_WriteCom;
-  	fbTurnOff 				: FB_TurnOff;	
-	
-	// ══════════════════════════════════════════════════════════
-    // Máquina de Estados
-    // ══════════════════════════════════════════════════════════
-	NextState		 		: E_MachineState := E_MachineState.START;
-	CurrentState			: E_MachineState := E_MachineState.START;
-    FailState     			: E_FailState := E_FailState.FS_INIT;
-	PrevFail				: E_FailState := E_FailState.FS_INIT;
-	StopState				: E_StopState := E_StopState.STOP_INIT;
-	
-    // ══════════════════════════════════════════════════════════
-    // STOP: Trip e Reset Manual
-    // ══════════════════════════════════════════════════════════
-    StopResetCmd      		: BOOL := FALSE;
-    PrevState     			: E_MachineState := E_MachineState.START; 	// guarda o estado anterior
-    ResetCOM_Write   		: BOOL;       								// pulso de detecção ao entrar em WRITE
-	ResetCOM_FailSafe   	: BOOL;       								// pulso de detecção ao entrar em WRITE
-    
-	// ══════════════════════════════════════════════════════════
-	// IHM triggers
-	// ══════════════════════════════════════════════════════════
-    rTrigStartReset 		: R_TRIG;
-    rTrigTurnOff    		: R_TRIG;
-	xStartResetEdge  : BOOL;
-	xTurnOffEdge     : BOOL;
-	
-    // ══════════════════════════════════════════════════════════
-    // Timers Normativos (DIS-NOR-033)
-    // ══════════════════════════════════════════════════════════
-    ton15s  				: TON;   // Hard limit > 15s → STOP
-    ton30s  				: TON;   // Exportação > LPI por > 30s → STOP
-    tonStopTrip   				: TON;   // Confirmação K2 aberto
+    // ══════════════════════════════════════════════════════════════════
+    // BLOCO 1 — INSTÂNCIAS DE FUNCTION BLOCKS
+    // Todos os FBs instanciados neste programa, agrupados por função.
+    // Ordem reflete a sequência lógica do ciclo de controle.
+    // ══════════════════════════════════════════════════════════════════
 
-    // ══════════════════════════════════════════════════════════
-    // Health Monitoring
-    // ══════════════════════════════════════════════════════════
-    MedidorOK         		: BOOL := FALSE;
-    ComOK             		: BOOL := FALSE;
-    Com1OK  	      		: BOOL := TRUE;
-    Com2OK	        		: BOOL := TRUE;
-    InvOnlineCount    		: UINT := 0;
-    ScanOverrunCount  		: UINT := 0;
-	TripOk        			: BOOL := FALSE;
-	
-    // ══════════════════════════════════════════════════════════
-    // Limites Calculados
-    // ══════════════════════════════════════════════════════════
-    LPI_per_phase_kW  		: REAL := 0.0;
-    HardLimit_mag     		: REAL := 0.0;
-    LPI_mag			  		: REAL;
-	Export_mag		  		: REAL;
-    // ══════════════════════════════════════════════════════════
-    // Validação Cruzada
-    // ══════════════════════════════════════════════════════════
-    Pt_Lastatus          		: REAL := 0.0;
-    P_inv_sum         		: REAL := 0.0;
-    
-    // ══════════════════════════════════════════════════════════
-    // Leitura medidor
-    // ══════════════════════════════════════════════════════════
-	ContaMeasModBusErros  	: UINT := 0;
-	ContaMeasModBusTimeOut	: UINT := 0;
-    
-    // ══════════════════════════════════════════════════════════
-    // Temporização e Watchdog
-    // ══════════════════════════════════════════════════════════
-    tCycleStart       		: UDINT := 0;
-    tCycleEnd         		: UDINT;
-    tCycle            		: UDINT;
-    tElapsed          		: UDINT;
-    bFirstScanRead    		: BOOL := TRUE;
-    MaxCycleTime      		: UDINT := 0;
-    CycleTimeOverrunCount 	: UDINT := 0;
+    // Inicialização
+    fbStart         : FB_Startup;
 
-    // ══════════════════════════════════════════════════════════
-    // FAIL_SAFE (STOP Timeout)
-    // ══════════════════════════════════════════════════════════
-    tonStopWrite      		: TON;
-    tStopWrite        		: TIME := T#2S;
-	tonFailSafeRecovery		: TON;   // tempo para recuperação ao normal
-	tonMedidorTimeout		: TON;   // tempo que aguarda medidor sem leitura
-	FailWriteRetryCount    	: UINT := 0;           // Contador de tentativas de escrita zero
-	MAX_FAIL_WRITE_RETRIES 	: UINT := 3;           // Máximo de tentativas (CONST)
-	RecoveryCycleCount     	: UINT := 0;           // Ciclos consecutivos com recuperação OK
-	RECOVERY_CYCLES        	: UINT := 10;          // Ciclos necessários (CONST)
-	tonFailGlobalTimeout   	: TON;                 // Timer global de permanência em FAIL
-	FAIL_MAX_DURATION      	: TIME := T#120S;      // Tempo máximo em FAIL (CONST)
-	bMeasRecovered         	: BOOL := FALSE;
-	bExportOK              	: BOOL := FALSE;  
-	bComRecovered         	: BOOL := FALSE;
-	bAllRecoveryOK         	: BOOL := FALSE;
-	bRecoveryApproved      	: BOOL := FALSE;
-	bFailInitDone          	: BOOL := FALSE;       // Evita re-execução de FS_INIT
-	
-    // ══════════════════════════════════════════════════════════
-    // Debug/Monitor
-    // ══════════════════════════════════════════════════════════
-    valor             		: UN_Convert_Word_To_Real;
-    auxvalor          		: REAL := 0;
-    stStart, stEnd, stCiclo : SYSTIME;
-    tStartCom, tCom, tEndCom: SYSTIME;
-    tMax              		: SYSTIME := 0;
-    Gatilho           		: BOOL := TRUE;
-    rTrigOn           		: R_TRIG;
-    fTrigOff          		: F_TRIG;
-    Primeiravez       		: BOOL := TRUE;
-    stCicloMax        		: SYSTIME := 0;
-    i                 		: UINT;
-    
+    // Ciclo READ → CONTROL → WRITE
+    fbChannel       : ModbusChannel;
+    fbReadMeas      : FB_ModBus;
+    fbValidaDados   : FB_ValidaDados;
+    fbControle      : FB_Controle;
+    fbWriteCOM1     : FB_WriteCom;
+    fbWriteCOM2     : FB_WriteCom;
+
+    // Estados especiais
+    fbTurnOff       : FB_TurnOff;
+    fbFailSafe      : FB_FailSafe;          // encapsula lógica completa do estado FAIL
+
+    // ══════════════════════════════════════════════════════════════════
+    // BLOCO 2 — MÁQUINA DE ESTADOS
+    // Variáveis que controlam o fluxo de estados do MainProgram.
+    // NextState é a única variável gravável do ciclo corrente;
+    // GVL_Main.MachineState é atualizado ao final do ciclo.
+    // ══════════════════════════════════════════════════════════════════
+
+    CurrentState    : E_MachineState := E_MachineState.START;
+    NextState       : E_MachineState := E_MachineState.START;
+    PrevState       : E_MachineState := E_MachineState.START;   // detecta transições de estado
+
+    StopState       : E_StopState    := E_StopState.STOP_INIT;
+
+    // ══════════════════════════════════════════════════════════════════
+    // BLOCO 3 — INTERFACE COM A IHM (Botões e Comandos do Operador)
+    // Detecção de borda dos botões da IHM. As flags xEdge são
+    // consumidas uma única vez por ciclo pela máquina de estados.
+    // ══════════════════════════════════════════════════════════════════
+
+    rTrigStartReset : R_TRIG;
+    rTrigTurnOff    : R_TRIG;
+    xStartResetEdge : BOOL;     // borda de subida: botão Start/Reset
+    xTurnOffEdge    : BOOL;     // borda de subida: botão TurnOff
+    StopResetCmd    : BOOL := FALSE;    // flag de confirmação de reset em STOP
+
+    // ══════════════════════════════════════════════════════════════════
+    // BLOCO 4 — CONTROLE DE FLUXO WRITE (Sincronismo COM1/COM2)
+    // Flags de reset geradas na detecção de entrada nos estados
+    // WRITE e FAIL, usadas para reinicializar FB_WriteCom a cada ciclo.
+    // ══════════════════════════════════════════════════════════════════
+
+    ResetCOM_Write    : BOOL;   // pulso ao entrar em WRITE
+    ResetCOM_FailSafe : BOOL;   // pulso ao entrar em FAIL (escrita de zeros)
+
+    // ══════════════════════════════════════════════════════════════════
+    // BLOCO 5 — LIMITES OPERACIONAIS E GRANDEZAS DE SUPERVISÃO
+    // Valores calculados a cada ciclo READ/CONTROL usados nas
+    // verificações normativas (DIS-NOR-033) e no estado FAIL.
+    // Unidade: kW e kvar (sistema interno do controlador).
+    // ══════════════════════════════════════════════════════════════════
+
+    LPI_mag             : REAL;             // Limite de Potência de Importação [kW] — trifásico
+    LPI_per_phase_kW    : REAL := 0.0;      // LPI por fase [kW] — usado na alocação
+    HardLimit_mag       : REAL := 0.0;      // Hard limit absoluto [kW] (110% do LPI)
+    Export_mag          : REAL;             // Exportação medida no ponto de conexão [kW]
+
+    // Validação cruzada medidor × inversores
+    Pt_Lastatus         : REAL := 0.0;      // Potência do LA (status) [kW]
+    P_inv_sum           : REAL := 0.0;      // Soma das potências dos inversores [kW]
+
+    // ══════════════════════════════════════════════════════════════════
+    // BLOCO 6 — TIMERS NORMATIVOS (DIS-NOR-033)
+    // Temporizadores que disparam transições para STOP conforme
+    // os tempos máximos definidos pela norma de exportação.
+    // ATENÇÃO: estes timers são críticos de segurança — não remover.
+    // ══════════════════════════════════════════════════════════════════
+
+    ton15s      : TON;  // Exportação acima do Hard Limit por > 15 s → STOP imediato
+    ton30s      : TON;  // Exportação acima do LPI por > 30 s → STOP
+    tonStopTrip : TON;  // Aguarda confirmação de abertura do K2 após trip (2 s)
+
+    // ══════════════════════════════════════════════════════════════════
+    // BLOCO 7 — ESTADO FAIL: TIMERS, CONTADORES E FLAGS DE RECUPERAÇÃO
+    // Variáveis internas do estado FAIL (FS_WRITE_ZERO → FS_VALIDATE).
+    // NOTA ARQUITETURAL: idealmente devem migrar para dentro de FB_FailSafe.
+    // Permanecem aqui enquanto a lógica FAIL estiver inline no MainProgram.
+    // ══════════════════════════════════════════════════════════════════
+
+    // Timers
+    tonStopWrite        : TON;              // timeout para escrita de zeros em FAIL
+    tStopWrite          : TIME := T#2S;     // duração do timeout acima
+    tonFailSafeRecovery : TON;              // janela de tempo para aprovação de recuperação (10 s)
+    tonMedidorTimeout   : TON;              // detecta medidor ausente dentro de FAIL (5 s → STOP)
+    tonFailGlobalTimeout: TON;              // permanência máxima em FAIL antes de forçar STOP
+
+    // Contadores e limiares (limiares deveriam ser VAR CONSTANT ou GVL_Persis)
+    FailWriteRetryCount     : UINT := 0;
+    MAX_FAIL_WRITE_RETRIES  : UINT := 3;    // TODO: mover para VAR CONSTANT
+    RecoveryCycleCount      : UINT := 0;
+    RECOVERY_CYCLES         : UINT := 10;   // TODO: mover para VAR CONSTANT
+    FAIL_MAX_DURATION       : TIME := T#120S; // TODO: mover para VAR CONSTANT
+
+    // Flags de critério de recuperação (avaliadas em FS_VALIDATE)
+    bMeasRecovered  : BOOL := FALSE;    // leitura Modbus do medidor OK
+    bExportOK       : BOOL := FALSE;    // exportação dentro do LPI
+    bComRecovered   : BOOL := FALSE;    // escrita nos inversores sem crítico
+    bAllRecoveryOK  : BOOL := FALSE;    // AND dos três critérios acima
+    bRecoveryApproved : BOOL := FALSE;  // critérios sustentados por RECOVERY_CYCLES + 10 s
+    bFailInitDone   : BOOL := FALSE;    // guarda de re-execução de FS_INIT
+
+    // ══════════════════════════════════════════════════════════════════
+    // BLOCO 8 — HEALTH MONITORING (Saúde do Sistema)
+    // Flags e contadores de diagnóstico em tempo real, usados pela
+    // máquina de estados e expostos à IHM/SCADA.
+    // ══════════════════════════════════════════════════════════════════
+
+    // Status de comunicação
+    MedidorOK           : BOOL := FALSE;    // Modbus do medidor respondeu no ciclo atual
+    ComOK               : BOOL := FALSE;    // COM1 e COM2 sem falha crítica
+    Com1OK              : BOOL := TRUE;
+    Com2OK              : BOOL := TRUE;
+    InvOnlineCount      : UINT := 0;        // inversores que responderam no último WRITE
+
+    // Contadores de erro de leitura (medidor)
+    ContaMeasModBusErros    : UINT := 0;
+    ContaMeasModBusTimeOut  : UINT := 0;
+
+    // Contadores de anomalia de ciclo
+    ScanOverrunCount        : UINT := 0;    // ciclos com tempo acima do limite
+
+    // ══════════════════════════════════════════════════════════════════
+    // BLOCO 9 — WATCHDOG E TEMPORIZAÇÃO DO CICLO
+    // Medição de tempo de execução do ciclo de scan para detectar
+    // overruns. Expõe MaxCycleTime e CycleTimeOverrunCount à IHM.
+    // ══════════════════════════════════════════════════════════════════
+
+    tCycleStart         : UDINT := 0;   // timestamp início do ciclo [ms]
+    tCycleEnd           : UDINT;        // timestamp fim do ciclo [ms]
+    tCycle              : UDINT;        // duração do ciclo corrente [ms]
+    tElapsed            : UDINT;        // tempo decorrido desde última leitura [ms]
+    bFirstScanRead      : BOOL := TRUE; // flag de primeiro scan após entrada em WRITE
+    MaxCycleTime        : UDINT := 0;   // pico histórico de tempo de ciclo [ms]
+    CycleTimeOverrunCount : UDINT := 0; // número de overruns acumulados
+
+    // ══════════════════════════════════════════════════════════════════
+    // BLOCO 10 — DEBUG E INSTRUMENTAÇÃO (remover antes de produção)
+    // Variáveis usadas exclusivamente durante desenvolvimento e
+    // comissionamento. NÃO devem influenciar lógica de controle.
+    // Proteger com {#ifdef DEBUG_MODE} onde aplicável.
+    // ══════════════════════════════════════════════════════════════════
+
+    stStart, stEnd, stCiclo : SYSTIME;      // timestamps de ciclo (debug)
+    tStartCom, tCom, tEndCom : SYSTIME;     // timestamps de comunicação (debug)
+    tMax                : SYSTIME := 0;
+    stCicloMax          : SYSTIME := 0;     // pico de tempo de ciclo (debug)
+    i                   : UINT;             // índice genérico de loop (debug)
+
+    // REVISAR — uso não identificado no MainProgram; candidatos a remoção:
+    valor               : UN_Convert_Word_To_Real;
+    auxvalor            : REAL := 0;
+    Gatilho             : BOOL := TRUE;
+    rTrigOn             : R_TRIG;
+    fTrigOff            : F_TRIG;
+    Primeiravez         : BOOL := TRUE;
+
 END_VAR
 
     // ════════════════════════════════════════════════════════════════
@@ -162,116 +213,22 @@ END_VAR
     NextState := CurrentState;
     
     CASE CurrentState OF
-    
-    E_MachineState.TURNOFF:
-    
-        // mantém medição viva
-        fbReadMeas(tTimeout := T#250MS,trigInv  := GVL_Main.trigMedidor100,pSlave:= GVL_Main.pMedidor100^);
     	
-        IF fbReadMeas.result = E_ModbusResult.DONE THEN
-            fbValidaDados(Meas_Device := GVL_Persis.MeasDeviceType);
-        END_IF
-    
-        fbTurnOff(
-            xEnable          := TRUE,
-            xStartResetEdge  := xStartResetEdge,
-            xK2_in           := GVL_Main.K2_in,
-            rPt_kW           := GVL_Main.Pt,
-            xMeasDataOK      := fbValidaDados.bDadosOK,
-            rP_Threshold_kW  := REAL#0.5,
-            tVerifyTimeout   := T#30S,
-            tK2Timeout       := T#2S,
-            uMaxWriteRetries := UINT#3,
-            xCom1Done        := fbWriteCOM1.Done,
-            xCom1Critical    := fbWriteCOM1.bCritical,
-            xCom2Done        := fbWriteCOM2.Done,
-            xCom2Critical    := fbWriteCOM2.bCritical
-        );
-    
-        // ações (OPÇÃO B)
-        IF fbTurnOff.xReqZeroSetpoints THEN
-            FOR i := 1 TO GVL_Main.NMAXINVERSORES DO
-                GVL_Main.P_inv_kW[i]      := 0.0;
-                GVL_Main.P_inv_Percent[i] := 0.0;
-                GVL_Main.Q_inv_kvar[i]    := 0.0;
-            END_FOR
-        END_IF
-    
-        IF fbTurnOff.xReqResetPI THEN
-            fbControle(bReset := TRUE);
-        END_IF
-    
-        // MODO 1: escrever zero só quando habilitado
-        IF fbTurnOff.xWriteZeroEnable THEN
-            fbWriteCOM1(
-                Reset            := fbTurnOff.xReqResetCOM,
-                tTimeout         := T#100MS,
-                nInverters       := GVL_Main.NInversoresCOM01,
-                nChannelsToWrite := GVL_Main.nChannelsToWriteCOM1,
-                maxErrors        := GVL_Main.MAX_CH1_MODBUS_ERROS,
-                maxTimeouts      := GVL_Main.MAX_CH1_MODBUS_TIMEOUTS,
-                trigInv          := GVL_Main.trigInvCOM100,
-                pInvPtr          := GVL_Main.pInversores100
-            );
-    
-            fbWriteCOM2(
-                Reset            := fbTurnOff.xReqResetCOM,
-                tTimeout         := T#100MS,
-                nInverters       := GVL_Main.NInversoresCOM02,
-                nChannelsToWrite := GVL_Main.nChannelsToWriteCOM2,
-                maxErrors        := GVL_Main.MAX_CH2_MODBUS_ERROS,
-                maxTimeouts      := GVL_Main.MAX_CH2_MODBUS_TIMEOUTS,
-                trigInv          := GVL_Main.trigInvCOM200,
-                pInvPtr          := GVL_Main.pInversores200
-            );
-        ELSE
-            fbWriteCOM1(Reset := TRUE);
-            fbWriteCOM2(Reset := TRUE);
-        END_IF
-    
-        IF fbTurnOff.xLogEvent THEN
-            FC_LogEvent(
-                eCode      := fbTurnOff.eLogCode,
-                bRaised    := TRUE,
-                rParam1    := fbTurnOff.rLogParam1,
-                rParam2    := fbTurnOff.rLogParam2,
-                uMachState := CurrentState
-            );
-        END_IF
-    
-        // aplica saídas
-        GVL_Main.K1_out := fbTurnOff.xK1_out;
-        GVL_Main.K2_out := fbTurnOff.xK2_out;
-        GVL_Main.LedRedOut    := fbTurnOff.xLedRed;
-        GVL_Main.LedYellowOut := fbTurnOff.xLedYellow;
-        GVL_Main.LedGreenOut  := fbTurnOff.xLedGreen;
-    
-        IF fbTurnOff.xRequestStop THEN
-            NextState := E_MachineState.STOP;
-        ELSIF fbTurnOff.xRequestStart THEN
-            NextState := E_MachineState.START;
-        ELSE
-            NextState := E_MachineState.TURNOFF;
-        END_IF
-    
-    
-    // ────────────────────────────────────────────────────────────────
+    // ============================================================================
+    // ============================================================================
     // START: Inicialização (fbStart + K1/K2)
     E_MachineState.START:
         fbStart();  // Chamada do bloco de inicialização
     	
     	CASE fbStart.stState OF
     		E_StartupStatus.stInit,
+    		E_StartupStatus.stCheck_COM,
+    		E_StartupStatus.stCheck_Medidor,
+    		E_StartupStatus.stCheck_Inversores,
             E_StartupStatus.stWait_K1,
             E_StartupStatus.stWait_K2:
             	// Permanece em START
             E_StartupStatus.stDone:
-    			// Inicialização única (executada 1x após power-on)
-    			FailState := E_FailState.FS_INIT;
-    			TripOk := FALSE;
-    			ton15s(IN := FALSE);
-    			ton30s(IN := FALSE);
-    			tonStopTrip(IN := FALSE);
                 (* Inicialização concluída – segue para leitura *)		
                 NextState := E_MachineState.READ;
     		E_StartupStatus.stError:
@@ -283,7 +240,8 @@ END_VAR
     {#endif}
     	END_CASE;
     
-    // ────────────────────────────────────────────────────────────────
+    // ============================================================================
+    // ============================================================================
     // READ: Leitura do Medidor
     E_MachineState.READ:
     
@@ -303,11 +261,11 @@ END_VAR
     			ContaMeasModBusErros:= 0;
     			ContaMeasModBusTimeOut:= 0;
     			
-    			fbValidaDados(Meas_Device:=GVL_Persis.MeasDeviceType);
+    			fbValidaDados(Meas_Device:=GVL_Pers.MeasDeviceType);
     			MedidorOK:=fbValidaDados.bDadosOK;
     			
-    			GVL_ALARM_MANAGER.ALARM_MEAS_USING_LAST_VALUEU:=fbValidaDados.bPoucosErros;
-    			GVL_ALARM_MANAGER.CRIT_MEAS_PERSISTENT_FAIL:=(NOT MedidorOK AND NOT fbValidaDados.bPoucosErros);
+    			GVL_Alarm.ALARM_MEAS_USING_LAST_VALUEU:=fbValidaDados.bPoucosErros;
+    			GVL_Alarm.CRIT_MEAS_PERSISTENT_FAIL:=(NOT MedidorOK AND NOT fbValidaDados.bPoucosErros);
     			
     			IF MedidorOK THEN
     				NextState := E_MachineState.CONTROL;
@@ -326,9 +284,9 @@ END_VAR
     			
     		E_ModbusResult.ERRO:
     			ContaMeasModBusErros:= ContaMeasModBusErros + 1;
-    			GVL_ALARM_MANAGER.CRIT_MEAS_MODBUS_ERRO:=(ContaMeasModBusErros > GVL_Main.MAX_Meas_MODBUS_ERROS);
+    			GVL_Alarm.CRIT_MEAS_MODBUS_ERRO:=(ContaMeasModBusErros > GVL_Main.MAX_Meas_MODBUS_ERROS);
     			
-    			IF GVL_ALARM_MANAGER.CRIT_MEAS_MODBUS_ERRO THEN					// permite seguir sem parar se acontecerem erros abaixo do maximo
+    			IF GVL_Alarm.CRIT_MEAS_MODBUS_ERRO THEN					// permite seguir sem parar se acontecerem erros abaixo do maximo
     				NextState := E_MachineState.FAIL;
     				FC_LogEvent(eCode:= E_EventCode.CRIT_MEAS_MODBUS_ERRO,bRaised:= TRUE,rParam1:=TO_REAL(ContaMeasModBusErros),rParam2:= 0.0,uMachState:=CurrentState);
     			ELSE
@@ -338,9 +296,9 @@ END_VAR
     			
     		E_ModbusResult.TIMEOUT: 
     			ContaMeasModBusTimeOut:= ContaMeasModBusTimeOut + 1;
-    			GVL_ALARM_MANAGER.CRIT_MEAS_MODBUS_TIMEOUT:=(ContaMeasModBusTimeOut > GVL_Main.MAX_Meas_MODBUS_TIMEOUTS);
+    			GVL_Alarm.CRIT_MEAS_MODBUS_TIMEOUT:=(ContaMeasModBusTimeOut > GVL_Main.MAX_Meas_MODBUS_TIMEOUTS);
     			
-    			IF GVL_ALARM_MANAGER.CRIT_MEAS_MODBUS_TIMEOUT THEN				// permite seguir sem parar se acontecerem TimeOut abaixo do maximo
+    			IF GVL_Alarm.CRIT_MEAS_MODBUS_TIMEOUT THEN				// permite seguir sem parar se acontecerem TimeOut abaixo do maximo
     				NextState := E_MachineState.FAIL;
     				FC_LogEvent(eCode:=E_EventCode.CRIT_MEAS_MODBUS_TIMEOUT,bRaised:=TRUE,rParam1:=TO_REAL(ContaMeasModBusTimeOut),rParam2:=0.0,uMachState := CurrentState);
     			ELSE
@@ -350,7 +308,8 @@ END_VAR
     	
         END_CASE
     
-    // ────────────────────────────────────────────────────────────────
+    // ============================================================================
+    // ============================================================================
     // CONTROL: Cálculo de Setpoints
     E_MachineState.CONTROL:
     
@@ -362,12 +321,12 @@ END_VAR
     {#endif}
     
     // ============================================================================
+    // ============================================================================
     // WRITE: Envia comandos aos Inversores (1 registro por vez / até 5 canais)
     // - COM1 e COM2 são orquestrados por FB_WriteCom (um por COM)
     // - Cada FB varre inversores 1..15 e canais 0..(nChannelsToWrite-1)
     // - Em falha não-crítica: pula inversor e continua
     // - Em falha crítica: sinaliza bCritical -> MainProgram vai para FAIL
-    // ============================================================================
     
     E_MachineState.WRITE:
     	
@@ -388,9 +347,9 @@ END_VAR
         // ------------------------------------------------------------------------
         fbWriteCOM1(
     		Reset		 	 := ResetCOM_Write,
-            tTimeout         := T#100MS,
+            tTimeout         := T#150MS,
             nInverters       := GVL_Main.NInversoresCOM01,
-            nChannelsToWrite := GVL_Main.nChannelsToWriteCOM1,
+            nChannelsToWrite := GVL_Pers.nChannelsToWriteCOM1,
             maxErrors        := GVL_Main.MAX_CH1_MODBUS_ERROS,
             maxTimeouts      := GVL_Main.MAX_CH1_MODBUS_TIMEOUTS,
             trigInv          := GVL_Main.trigInvCOM100, 
@@ -404,10 +363,10 @@ END_VAR
         // ------------------------------------------------------------------------
         IF fbWriteCOM1.bCritical THEN
     
-    		GVL_ALARM_MANAGER.CRIT_CH1_MODBUS_TIMEOUT:=(fbWriteCOM1.FailRes = E_ModbusResult.TIMEOUT);
-    		GVL_ALARM_MANAGER.CRIT_CH1_MODBUS_ERRO :=(fbWriteCOM1.FailRes = E_ModbusResult.ERRO);
+    		GVL_Alarm.CRIT_CH1_MODBUS_TIMEOUT:=(fbWriteCOM1.FailRes = E_ModbusResult.TIMEOUT);
+    		GVL_Alarm.CRIT_CH1_MODBUS_ERRO :=(fbWriteCOM1.FailRes = E_ModbusResult.ERRO);
     		
-            IF GVL_ALARM_MANAGER.CRIT_CH1_MODBUS_TIMEOUT THEN
+            IF GVL_Alarm.CRIT_CH1_MODBUS_TIMEOUT THEN
                 FC_LogEvent(
                     eCode      := E_EventCode.CRIT_CH1_MODBUS_TIMEOUT,
                     bRaised    := TRUE,
@@ -416,7 +375,7 @@ END_VAR
                     uMachState := CurrentState
                 );
     		END_IF
-            IF GVL_ALARM_MANAGER.CRIT_CH1_MODBUS_ERRO THEN 
+            IF GVL_Alarm.CRIT_CH1_MODBUS_ERRO THEN 
                 FC_LogEvent(
                     eCode      := E_EventCode.CRIT_CH1_MODBUS_ERRO,
                     bRaised    := TRUE,
@@ -435,9 +394,9 @@ END_VAR
         // ------------------------------------------------------------------------
         fbWriteCOM2(
     		Reset		 	 := ResetCOM_Write,
-            tTimeout         := T#100MS,
+            tTimeout         := T#150MS,
             nInverters       := GVL_Main.NInversoresCOM02,
-            nChannelsToWrite := GVL_Main.nChannelsToWriteCOM2,
+            nChannelsToWrite := GVL_Pers.nChannelsToWriteCOM2,
             maxErrors        := GVL_Main.MAX_CH2_MODBUS_ERROS,
             maxTimeouts      := GVL_Main.MAX_CH2_MODBUS_TIMEOUTS,
             trigInv          := GVL_Main.trigInvCOM200,
@@ -446,10 +405,10 @@ END_VAR
     
         IF fbWriteCOM2.bCritical THEN
     
-    		GVL_ALARM_MANAGER.CRIT_CH2_MODBUS_TIMEOUT:=(fbWriteCOM2.FailRes = E_ModbusResult.TIMEOUT);
-    		GVL_ALARM_MANAGER.CRIT_CH2_MODBUS_ERRO :=(fbWriteCOM2.FailRes = E_ModbusResult.ERRO);
+    		GVL_Alarm.CRIT_CH2_MODBUS_TIMEOUT:=(fbWriteCOM2.FailRes = E_ModbusResult.TIMEOUT);
+    		GVL_Alarm.CRIT_CH2_MODBUS_ERRO :=(fbWriteCOM2.FailRes = E_ModbusResult.ERRO);
     		
-            IF GVL_ALARM_MANAGER.CRIT_CH2_MODBUS_TIMEOUT THEN
+            IF GVL_Alarm.CRIT_CH2_MODBUS_TIMEOUT THEN
                 FC_LogEvent(
                     eCode      := E_EventCode.CRIT_CH2_MODBUS_TIMEOUT,
                     bRaised    := TRUE,
@@ -458,7 +417,7 @@ END_VAR
                     uMachState := CurrentState
                 );
     		END_IF
-            IF GVL_ALARM_MANAGER.CRIT_CH2_MODBUS_ERRO THEN
+            IF GVL_Alarm.CRIT_CH2_MODBUS_ERRO THEN
                 FC_LogEvent(
                     eCode      := E_EventCode.CRIT_CH2_MODBUS_ERRO,
                     bRaised    := TRUE,
@@ -479,7 +438,8 @@ END_VAR
     
         END_IF
     
-    // ────────────────────────────────────────────────────────────────
+    // ============================================================================
+    // ============================================================================
     // IDLE: Aguarda Completar Ciclo (1s)			
     E_MachineState.IDLE:
     //  Aguarda completar período de ciclo (1 segundo) depois de
@@ -495,16 +455,16 @@ END_VAR
                MaxCycleTime := tElapsed;
            	END_IF;  
     
-    	GVL_ALARM_MANAGER.ALARM_SCAN_OVERRUN:=(tElapsed > GVL_Main.CYCLE_TIME_TOLERANCE);
-    	IF GVL_ALARM_MANAGER.ALARM_SCAN_OVERRUN THEN
+    	GVL_Alarm.ALARM_SCAN_OVERRUN:=(tElapsed > GVL_Main.CYCLE_TIME_TOLERANCE);
+    	IF GVL_Alarm.ALARM_SCAN_OVERRUN THEN
     		
     		ScanOverrunCount := ScanOverrunCount + 1;
     		
     		FC_LogEvent(eCode:=E_EventCode.ALARM_SCAN_OVERRUN,bRaised:=TRUE,
     							rParam1:=0.0,rParam2:=0.0,uMachState := CurrentState);
     							
-    		GVL_ALARM_MANAGER.CRIT_SCAN_OVERRUN:=(ScanOverrunCount >= 3);
-    		IF GVL_ALARM_MANAGER.CRIT_SCAN_OVERRUN THEN
+    		GVL_Alarm.CRIT_SCAN_OVERRUN:=(ScanOverrunCount >= 3);
+    		IF GVL_Alarm.CRIT_SCAN_OVERRUN THEN
     		FC_LogEvent(eCode:=E_EventCode.CRIT_SCAN_OVERRUN,bRaised:=TRUE,
     							rParam1:=0.0,rParam2:=0.0,uMachState := CurrentState);
     			NextState := E_MachineState.FAIL;
@@ -518,17 +478,140 @@ END_VAR
     {#endif}
     	END_IF;
     
-    // ────────────────────────────────────────────────────────────────
+    // ============================================================================
+    // ============================================================================
+    E_MachineState.TURNOFF:
+    
+        // 0) Mantém medição viva durante TURNOFF
+        fbReadMeas(
+            tTimeout := T#250MS,
+            trigInv  := GVL_Main.trigMedidor100,
+            pSlave   := GVL_Main.pMedidor100^
+        );
+    
+        IF fbReadMeas.result = E_ModbusResult.DONE THEN
+            fbValidaDados(Meas_Device := GVL_Pers.MeasDeviceType);
+        END_IF
+    
+        // 1) Chama o FB_TurnOff (Opção B + Modo 1)
+        fbTurnOff(
+            xEnable          := TRUE,
+            xStartResetEdge  := xStartResetEdge,
+            xK2_in           := GVL_Main.K2_in,
+            rPt_kW           := GVL_Main.Pt,
+            xMeasDataOK      := fbValidaDados.bDadosOK,
+            rP_Threshold_kW  := REAL#0.5,
+            tVerifyTimeout   := T#30S,
+            tK2Timeout       := T#2S,
+            uMaxWriteRetries := UINT#3,
+            xCom1Done        := fbWriteCOM1.Done,
+            xCom1Critical    := fbWriteCOM1.bCritical,
+            xCom2Done        := fbWriteCOM2.Done,
+            xCom2Critical    := fbWriteCOM2.bCritical
+        );
+    
+        // 2) Ações pedidas pelo FB (Opção B)
+        IF fbTurnOff.xReqZeroSetpoints THEN
+            FOR i := 1 TO GVL_Main.NMAXINVERSORES DO
+                GVL_Main.P_inv_kW[i]      := 0.0;
+                GVL_Main.P_inv_Percent[i] := 0.0;
+                GVL_Main.Q_inv_kvar[i]    := 0.0;
+            END_FOR
+        END_IF
+    
+        IF fbTurnOff.xReqResetPI THEN
+            fbControle(bReset := TRUE);
+        END_IF
+    
+        // 3) MODO 1: escrever zero só quando habilitado pelo FB
+        IF fbTurnOff.xWriteZeroEnable THEN
+            fbWriteCOM1(
+                Reset            := fbTurnOff.xReqResetCOM,
+                tTimeout         := T#150MS,
+                nInverters       := GVL_Main.NInversoresCOM01,
+                nChannelsToWrite := GVL_Pers.nChannelsToWriteCOM1,
+                maxErrors        := GVL_Main.MAX_CH1_MODBUS_ERROS,
+                maxTimeouts      := GVL_Main.MAX_CH1_MODBUS_TIMEOUTS,
+                trigInv          := GVL_Main.trigInvCOM100,
+                pInvPtr          := GVL_Main.pInversores100
+            );
+    
+            fbWriteCOM2(
+                Reset            := fbTurnOff.xReqResetCOM,
+                tTimeout         := T#150MS,
+                nInverters       := GVL_Main.NInversoresCOM02,
+                nChannelsToWrite := GVL_Pers.nChannelsToWriteCOM2,
+                maxErrors        := GVL_Main.MAX_CH2_MODBUS_ERROS,
+                maxTimeouts      := GVL_Main.MAX_CH2_MODBUS_TIMEOUTS,
+                trigInv          := GVL_Main.trigInvCOM200,
+                pInvPtr          := GVL_Main.pInversores200
+            );
+        ELSE
+            // Reset COM — DEVE passar os VAR_IN_OUT obrigatórios
+            fbWriteCOM1(
+                Reset            := TRUE,
+                tTimeout         := T#150MS,
+                nInverters       := GVL_Main.NInversoresCOM01,
+                nChannelsToWrite := GVL_Pers.nChannelsToWriteCOM1,
+                maxErrors        := GVL_Main.MAX_CH1_MODBUS_ERROS,
+                maxTimeouts      := GVL_Main.MAX_CH1_MODBUS_TIMEOUTS,
+                trigInv          := GVL_Main.trigInvCOM100,
+                pInvPtr          := GVL_Main.pInversores100
+            );
+    
+            fbWriteCOM2(
+                Reset            := TRUE,
+                tTimeout         := T#150MS,
+                nInverters       := GVL_Main.NInversoresCOM02,
+                nChannelsToWrite := GVL_Pers.nChannelsToWriteCOM2,
+                maxErrors        := GVL_Main.MAX_CH2_MODBUS_ERROS,
+                maxTimeouts      := GVL_Main.MAX_CH2_MODBUS_TIMEOUTS,
+                trigInv          := GVL_Main.trigInvCOM200,
+                pInvPtr          := GVL_Main.pInversores200
+            );
+        END_IF
+    
+        // 4) Log (1 por transição)
+        IF fbTurnOff.xLogEvent THEN
+            FC_LogEvent(
+                eCode      := fbTurnOff.eLogCode,
+                bRaised    := TRUE,
+                rParam1    := fbTurnOff.rLogParam1,
+                rParam2    := fbTurnOff.rLogParam2,
+                uMachState := CurrentState
+            );
+        END_IF
+    
+        // 5) Aplica saídas físicas
+        GVL_Main.K1_out       := fbTurnOff.xK1_out;
+        GVL_Main.K2_out       := fbTurnOff.xK2_out;
+        GVL_Main.LedRedOut    := fbTurnOff.xLedRed;
+        GVL_Main.LedYellowOut := fbTurnOff.xLedYellow;
+        GVL_Main.LedGreenOut  := fbTurnOff.xLedGreen;
+    
+        // 6) Transições solicitadas pelo FB
+        IF fbTurnOff.xRequestStop THEN
+            NextState := E_MachineState.STOP;
+        ELSIF fbTurnOff.xRequestStart THEN
+            NextState := E_MachineState.START;
+        ELSE
+            NextState := E_MachineState.TURNOFF;
+        END_IF
+    
+    // ============================================================================
+    // ============================================================================
     E_MachineState.FAIL:
     // ESTADO FAIL — Redução forçada (norma DIS-NOR-033)
     // Fluxo: FS_INIT → FS_FORCE_ZERO → FS_VALIDATE → (recupera ou STOP)
+    // Toda a lógica reside em FB_FailSafe.
+    // MainProgram delega e aplica as saídas solicitadas pelo FB.
     // ton15s: P > LPI + 10% Pnom por >15s → STOP
     // ton30s: P > LPI por >30s → STOP
     
-        // ────────────────────────────────────────────────────────────────
+    	// ────────────────────────────────────────────────────────────────
     	// A. CÁLCULOS INDEPENDENTES DE SUB-ESTADO (executam TODO ciclo)
     
-        // Cálculo do hard limit
+        // ── Cálculos de limite (necessários para alimentar o FB) ─────
     	LPI_mag := ABS(GVL_Main.MaxExportLimit);
     	Export_mag := MAX(0, -GVL_Main.Pt);
         HardLimit_mag := LPI_mag + (GVL_Main.InstalledPower * 0.1);
@@ -538,194 +621,81 @@ END_VAR
     	
     	// Atualiza MedidorOK
     	IF fbReadMeas.result = E_ModbusResult.DONE THEN
-    		fbValidaDados(Meas_Device := GVL_Persis.MeasDeviceType);
+    		fbValidaDados(Meas_Device := GVL_Pers.MeasDeviceType);
     		MedidorOK := fbValidaDados.bDadosOK;
     	ELSE
     		MedidorOK := FALSE; 
     	END_IF;
     	
-        // ────────────────────────────────────────────────────────────────
-        // B. ATUALIZA TODOS OS TIMERS (executam TODO ciclo)
-        //    Apenas atualiza — a DECISÃO é feita abaixo na cadeia IF
-    
-        tonFailGlobalTimeout(IN := TRUE, PT := FAIL_MAX_DURATION);
-        ton15s(IN := MedidorOK AND (Export_mag > HardLimit_mag), PT := T#15S);
-        ton30s(IN := MedidorOK AND (Export_mag > LPI_mag), PT := T#30S);	
-    	
-        // ────────────────────────────────────────────────────────────────
-        // C. CADEIA DE DECISÃO COM PRIORIDADE EXPLÍCITA
-        //    IF/ELSIF garante que apenas UMA decisão prevalece
-        //    Prioridade: Global > HardLimit > Export30s > SubEstados
-    
-        // ── PRIORIDADE 1: Timeout global (preso em FAIL por tempo demais)
-        IF tonFailGlobalTimeout.Q THEN
-            FC_LogEvent(eCode:=E_EventCode.CRIT_FAIL_GLOBAL_TIMEOUT, bRaised:=TRUE,
-                rParam1:=Export_mag, rParam2:=LPI_mag, uMachState := CurrentState);
-            GVL_ALARM_MANAGER.CRIT_FAIL_GLOBAL_TIMEOUT := TRUE;
-            tonFailGlobalTimeout(IN := FALSE);
-            NextState := E_MachineState.STOP;										// Não processa o resto — sai imediatamente
-    	
-        // ── PRIORIDADE 2: Hard limit 15s (P > LPI + 10% Pnom)
-        ELSIF ton15s.Q THEN
-            GVL_ALARM_MANAGER.CRIT_HARDLIMIT_15S := TRUE;
-            FC_LogEvent(eCode:=E_EventCode.CRIT_HARDLIMIT_15S, bRaised:=TRUE,
-                rParam1:=Export_mag, rParam2:=HardLimit_mag, uMachState := CurrentState);
-            NextState := E_MachineState.STOP;
-    
-        // ── PRIORIDADE 3: Exportação > LPI por > 30s
-        ELSIF ton30s.Q THEN
-            GVL_ALARM_MANAGER.CRIT_EXPORT_OVER_LPI_30S := TRUE;
-            FC_LogEvent(eCode:=E_EventCode.CRIT_EXPORT_OVER_LPI_30S, bRaised:=TRUE,
-                rParam1:=Export_mag, rParam2:=LPI_mag, uMachState := CurrentState);
-            NextState := E_MachineState.STOP;
-    	
-        // ── PRIORIDADE 4: Sub-estados (nenhuma condição de STOP imediata) ──
-    
-        ELSE
-    		// SUB-ESTADOS SIMPLIFICADOS
-    		CASE FailState OF
-    	
-    			E_FailState.FS_INIT:
-    			
-    				GVL_Main.LedYellowOut := TRUE;										// Sinalização
-    				GVL_Main.LedGreenOut := FALSE;
-    
-    				tonFailSafeRecovery(IN := FALSE);									// Reinicializa índices de escrita
-    				tonMedidorTimeout(IN := FALSE); 
-    				RecoveryCycleCount := 0;
-    
-                    IF NOT bFailInitDone THEN
-                        FOR i := 1 TO GVL_Main.NMAXINVERSORES DO
-                            GVL_Main.P_inv_kW[i] := 0.0;
-                            GVL_Main.P_inv_Percent[i] := 0.0;
-                            GVL_Main.Q_inv_kvar[i] := 0.0;
-                        END_FOR
-                        fbControle(bReset:=TRUE);
-                        bFailInitDone := TRUE;
-                    END_IF					
-    				
-    				PrevFail := FailState;   
-    				FailState := E_FailState.FS_FORCE_ZERO;	
-    				GVL_ALARM_MANAGER.CRIT_FAIL_ENTRY:=TRUE;	
-    				FC_LogEvent(eCode:=E_EventCode.CRIT_FAIL_ENTRY,bRaised:=TRUE,
-    					rParam1:=Export_mag,rParam2:=LPI_mag,uMachState := CurrentState);		
-    	
-    			E_FailState.FS_FORCE_ZERO:
-    				
-    				ResetCOM_FailSafe := (PrevFail = E_FailState.FS_INIT);			// Detecta borda de subida quando o estado para E_FailState.FS_FORCE_ZERO
-    				PrevFail := FailState;   										// Atualiza o estado anterior
-    
-    				fbWriteCOM1(
-    					Reset		 	 := ResetCOM_FailSafe,
-    					tTimeout         := T#100MS,
-    					nInverters       := GVL_Main.NInversoresCOM01,
-    					nChannelsToWrite := GVL_Main.nChannelsToWriteCOM1,
-    					maxErrors        := GVL_Main.MAX_CH1_MODBUS_ERROS,
-    					maxTimeouts      := GVL_Main.MAX_CH1_MODBUS_TIMEOUTS,
-    					trigInv          := GVL_Main.trigInvCOM100, 
-    					pInvPtr          := GVL_Main.pInversores100
-    				);
-    	
-    				fbWriteCOM2(
-    					Reset		 	 := ResetCOM_FailSafe,
-    					tTimeout         := T#100MS,
-    					nInverters       := GVL_Main.NInversoresCOM02,
-    					nChannelsToWrite := GVL_Main.nChannelsToWriteCOM2,
-    					maxErrors        := GVL_Main.MAX_CH2_MODBUS_ERROS,
-    					maxTimeouts      := GVL_Main.MAX_CH2_MODBUS_TIMEOUTS,
-    					trigInv          := GVL_Main.trigInvCOM200,
-    					pInvPtr          := GVL_Main.pInversores200
-    				);          
-                    IF fbWriteCOM1.Done AND fbWriteCOM2.Done THEN
-                        IF fbWriteCOM1.bCritical OR fbWriteCOM2.bCritical THEN
-                            // ❌ Escrita falhou
-                            FailWriteRetryCount := FailWriteRetryCount + 1;
-                            GVL_ALARM_MANAGER.CRIT_FAIL_WRITE_FAILED := TRUE;
-                            FC_LogEvent(eCode:=E_EventCode.CRIT_FAIL_WRITE_ZERO_FAILED,
-                                bRaised:=TRUE,
-                                rParam1:=TO_REAL(FailWriteRetryCount), rParam2:=0.0,
-                                uMachState := CurrentState);
-    
-                            IF FailWriteRetryCount >= MAX_FAIL_WRITE_RETRIES THEN
-                                // ❌ Esgotou tentativas → STOP
-                                FC_LogEvent(eCode:=E_EventCode.CRIT_FAIL_WRITE_EXHAUSTED,
-                                    bRaised:=TRUE,
-                                    rParam1:=TO_REAL(FailWriteRetryCount), rParam2:=0.0,
-                                    uMachState := CurrentState);
-                                NextState := E_MachineState.STOP;
-                            ELSE
-                                PrevFail := E_FailState.FS_INIT;
-                            END_IF
-                        ELSE
-                            // ✅ Escrita OK
-                            FailWriteRetryCount := 0;
-                            GVL_ALARM_MANAGER.CRIT_FAIL_WRITE_FAILED := FALSE;
-                            FailState := E_FailState.FS_VALIDATE;
-                        END_IF
-                    END_IF
-    	
-    			E_FailState.FS_VALIDATE:
-        			// ────────────────────────────────────────────────────────────────
-                    // CRITÉRIOS DE RECUPERAÇÃO EXPLÍCITOS
-                    bMeasRecovered := (fbReadMeas.result = E_ModbusResult.DONE) AND MedidorOK;
-                    bExportOK := (Export_mag <= LPI_mag);
-                    bComRecovered := (NOT fbWriteCOM1.bCritical) AND (NOT fbWriteCOM2.bCritical);
-                    bAllRecoveryOK := bMeasRecovered AND bExportOK AND bComRecovered;
-    
-                    IF bAllRecoveryOK THEN
-                        IF RecoveryCycleCount < RECOVERY_CYCLES THEN
-                            RecoveryCycleCount := RecoveryCycleCount + 1;
-                        END_IF
-    
-                        tonFailSafeRecovery(IN := TRUE, PT := T#10S);
-                        bRecoveryApproved := (RecoveryCycleCount >= RECOVERY_CYCLES) AND tonFailSafeRecovery.Q;
-    
-                        IF bRecoveryApproved THEN
-                            // ✅ RECUPERAÇÃO APROVADA — limpa tudo
-                            FailState := E_FailState.FS_INIT;
-                            bFailInitDone := FALSE;
-                            ton15s(IN := FALSE);
-                            ton30s(IN := FALSE);
-                            tonMedidorTimeout(IN := FALSE);
-                            tonFailSafeRecovery(IN := FALSE);
-                            tonFailGlobalTimeout(IN := FALSE);
-                            RecoveryCycleCount := 0;
-                            FailWriteRetryCount := 0;
-                            ContaMeasModBusErros := 0;
-                            ContaMeasModBusTimeOut := 0;
-                            fbControle(bReset:=TRUE);
-                            GVL_Main.LedYellowOut := FALSE;
-                            GVL_ALARM_MANAGER.CRIT_FAIL_ENTRY := FALSE;
-                            GVL_ALARM_MANAGER.CRIT_FAIL_WRITE_FAILED := FALSE;
-                            GVL_ALARM_MANAGER.CRIT_FAIL_GLOBAL_TIMEOUT := FALSE;
-                            FC_LogEvent(eCode:=E_EventCode.INFO_FAIL_RECOVERY, bRaised:=TRUE,
-                                rParam1:=Export_mag, rParam2:=LPI_mag,
-                                uMachState := CurrentState);
-                            NextState := E_MachineState.READ;
-                        END_IF
-    
-                    ELSE
-                        // ❌ Condições NÃO OK
-                        RecoveryCycleCount := 0;
-                        tonFailSafeRecovery(IN := FALSE);
-    
-                        tonMedidorTimeout(IN := (NOT bMeasRecovered), PT := T#5S);
-                        GVL_ALARM_MANAGER.CRIT_MEAS_TIMEOUT_IN_FAIL := tonMedidorTimeout.Q;
-    
-                        IF tonMedidorTimeout.Q THEN
-                            FC_LogEvent(eCode:=E_EventCode.CRIT_MEAS_TIMEOUT_IN_FAIL,
-                                bRaised:=TRUE,
-                                rParam1:=Export_mag, rParam2:=LPI_mag,
-                                uMachState := CurrentState);
-                            tonMedidorTimeout(IN := FALSE);
-                            NextState := E_MachineState.STOP;
-                        END_IF
-                    END_IF
-    
-            END_CASE
+        // ── Chama FB_FailSafe ────────────────────────────────────────
+        fbFailSafe(
+            xEnable         := TRUE,
+            xMeasDone       := (fbReadMeas.result = E_ModbusResult.DONE),
+            xMeasOK         := MedidorOK,
+            xCom1Done       := fbWriteCOM1.Done,
+            xCom1Critical   := fbWriteCOM1.bCritical,
+            xCom2Done       := fbWriteCOM2.Done,
+            xCom2Critical   := fbWriteCOM2.bCritical,
+            rExport_mag     := Export_mag,
+            rLPI_mag        := LPI_mag,
+            rHardLimit_mag  := HardLimit_mag,
+            uCurrentState   := CurrentState
+            );
+        
+        // ── Aplica setpoints zero se solicitado ──────────────────────
+        IF fbFailSafe.xReqZeroSetpoints THEN
+    		FOR i := 1 TO GVL_Main.NMAXINVERSORES DO
+        		GVL_Main.P_inv_kW[i]      := 0.0;
+                GVL_Main.P_inv_Percent[i] := 0.0;
+                GVL_Main.Q_inv_kvar[i]    := 0.0;
+           END_FOR
         END_IF
+        
+        // ── Reset do controlador PI se solicitado ────────────────────
+        IF fbFailSafe.xReqResetPI THEN
+             fbControle(bReset := TRUE);
+        END_IF
+        
+         // ── Escrita Modbus zero (habilitada pelo FB) ─────────────────
+        fbWriteCOM1(
+             Reset            := fbFailSafe.xReqWriteCOM_Reset,
+             tTimeout         := T#100MS,
+             nInverters       := GVL_Main.NInversoresCOM01,
+             nChannelsToWrite := GVL_Pers.nChannelsToWriteCOM1,
+             maxErrors        := GVL_Main.MAX_CH1_MODBUS_ERROS,
+             maxTimeouts      := GVL_Main.MAX_CH1_MODBUS_TIMEOUTS,
+             trigInv          := GVL_Main.trigInvCOM100,
+             pInvPtr          := GVL_Main.pInversores100
+             );
+        
+    	fbWriteCOM2(
+    		Reset            := fbFailSafe.xReqWriteCOM_Reset,
+    		tTimeout         := T#100MS,
+    		nInverters       := GVL_Main.NInversoresCOM02,
+    		nChannelsToWrite := GVL_Pers.nChannelsToWriteCOM2,
+    		maxErrors        := GVL_Main.MAX_CH2_MODBUS_ERROS,
+    		maxTimeouts      := GVL_Main.MAX_CH2_MODBUS_TIMEOUTS,
+    		trigInv          := GVL_Main.trigInvCOM200,
+    		pInvPtr          := GVL_Main.pInversores200
+    	);
     
-    // ────────────────────────────────────────────────────────────────
+    	// ── Transições de estado ─────────────────────────────────────
+    	IF fbFailSafe.xRequestStop THEN
+    		NextState := E_MachineState.STOP;
+    	ELSIF fbFailSafe.xRequestRead THEN
+    		// Recuperação aprovada: desabilita FB antes de sair
+    		fbFailSafe(xEnable := FALSE,
+    			xMeasDone := FALSE, xMeasOK := FALSE,
+    			xCom1Done := FALSE, xCom1Critical := FALSE,
+    			xCom2Done := FALSE, xCom2Critical := FALSE,
+    			rExport_mag := 0.0, rLPI_mag := 0.0, rHardLimit_mag := 0.0,
+    			uCurrentState := CurrentState);
+    		NextState := E_MachineState.READ;
+    	END_IF		
+    
+    
+    // ============================================================================
+    // ============================================================================
     E_MachineState.STOP:
     
         // ────────────────────────────────────────────────────────────────
@@ -736,10 +706,7 @@ END_VAR
     	CASE StopState OF 
     	// Sinaliza entrada em STOP
         E_StopState.STOP_INIT:
-    
-    		ton15s(IN := FALSE);											// zera timers caso venha de FAIL
-    		ton30s(IN := FALSE);
-    						
+    				
             tonStopTrip(IN := FALSE);                  						// garante timer resetado
             StopResetCmd := FALSE;               							// evita saída imediata por comando antigo
     		
@@ -752,7 +719,7 @@ END_VAR
             GVL_Main.LedYellowOut := FALSE;
             GVL_Main.LedGreenOut := FALSE;
     		
-    		GVL_ALARM_MANAGER.CRIT_K2_NOT_OPENED :=FALSE;
+    		GVL_Alarm.CRIT_K2_NOT_OPENED :=FALSE;
     					
     		StopState:= E_StopState.STOP_TRIP;
     	   
@@ -766,9 +733,9 @@ END_VAR
             IF tonStopTrip.Q THEN
                 tonStopTrip(IN := FALSE);
                 
-    			GVL_ALARM_MANAGER.CRIT_K2_NOT_OPENED := GVL_Main.K2_in;		// se K2=TRUE => K2 não tripou
+    			GVL_Alarm.CRIT_K2_NOT_OPENED := GVL_Main.K2_in;		// se K2=TRUE => K2 não tripou
     			
-                IF (GVL_ALARM_MANAGER.CRIT_K2_NOT_OPENED) THEN
+                IF (GVL_Alarm.CRIT_K2_NOT_OPENED) THEN
     				// Sinaliza Trip não aconteceu;
     				FC_LogEvent(eCode := E_EventCode.CRIT_K2_NOT_OPENED,bRaised := TRUE,rParam1 := 0.0,rParam2 := 0.0,uMachState := CurrentState);
                 ELSE
@@ -792,8 +759,9 @@ END_VAR
     		END_IF       
     	END_CASE
     	
-    // ────────────────────────────────────────────────────────────────
     
+    // ============================================================================
+    // ============================================================================
     E_MachineState.ERRO:
         GVL_Main.LedRedOut := TRUE;
         GVL_Main.LedYellowOut := FALSE;
@@ -810,7 +778,8 @@ END_VAR
     END_CASE
     
     
-    // ────────────────────────────────────────────────────────────────
+    // ============================================================================
+    // ============================================================================
     // Guarda de transição para TURNOFF (comando voluntário do operador)
     // Aceita TURNOFF apenas a partir de estados operacionais
     // Rejeita se já em FAIL/STOP/ERRO/START/TURNOFF
@@ -825,11 +794,20 @@ END_VAR
     
     // ── Guarda existente para STOP (manter inalterada) ──
     IF (NextState = E_MachineState.STOP) AND (CurrentState <> E_MachineState.STOP) THEN
-        StopState := E_StopState.STOP_INIT;
+    	StopState := E_StopState.STOP_INIT;
+    	// Garante reset do FB_FailSafe ao sair do estado FAIL via STOP
+    	IF CurrentState = E_MachineState.FAIL THEN
+    		fbFailSafe(xEnable := FALSE,
+    			xMeasDone := FALSE, xMeasOK := FALSE,
+    			xCom1Done := FALSE, xCom1Critical := FALSE,
+    			xCom2Done := FALSE, xCom2Critical := FALSE,
+    			rExport_mag := 0.0, rLPI_mag := 0.0, rHardLimit_mag := 0.0,
+    			uCurrentState := CurrentState);
+    	END_IF
     END_IF
     
     // Atualiza flag de status
-    GVL_ALARM_MANAGER.ALARM_TURNOFF_ACTIVE := (NextState = E_MachineState.TURNOFF);
+    GVL_Alarm.ALARM_TURNOFF_ACTIVE := (NextState = E_MachineState.TURNOFF);
     
     PrevState := CurrentState;
     GVL_Main.MachineState := NextState;

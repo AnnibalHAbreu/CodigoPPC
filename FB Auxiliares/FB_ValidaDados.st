@@ -33,29 +33,31 @@ VAR_OUTPUT
 END_VAR
 
 VAR
-	valorLido		: UN_Rele;
-	Ua    	    	: REAL := 0.0; // 2006H - Tensão de fase A x 0,1 V
-	Ub    	    	: REAL := 0.0; // 2008H - Tensão de fase B x 0,1 V
-	Uc    	    	: REAL := 0.0; // 200AH - Tensão de fase C x 0,1 V
+	chint			: UN_chint;
+	URP1439			: UN_URP1439;
 	
-	Ia    	    	: REAL := 0.0; // 200CH - Corrente de fase A x 0,001 A 
-	Ib    	    	: REAL := 0.0; // 200EH - Corrente de fase B x 0,001 A
-	Ic    	    	: REAL := 0.0; // 2010H - Corrente de fase C x 0,001 A
+	Ua    	    	: REAL := 0.0; // Volts
+	Ub    	    	: REAL := 0.0; // Volts
+	Uc    	    	: REAL := 0.0; // Volts
 	
-	Pt    	    	: REAL := 0.0; // 2012H - Potencia ativa combinada x 0,1 W
-	Pa    	    	: REAL := 0.0; // 2014H - Potencia ativa fase A x 0,1 W
-	Pb    	    	: REAL := 0.0; // 2016H - Potencia ativa fase B x 0,1 W
-	Pc    	   		: REAL := 0.0; // 2018H - Potencia ativa fase C x 0,1 W	
+	Ia    	    	: REAL := 0.0; // amperes
+	Ib    	    	: REAL := 0.0; // amperes
+	Ic    	    	: REAL := 0.0; // amperes
+	
+	Pt    	    	: REAL := 0.0; // sem unidade
+	Pa    	    	: REAL := 0.0; // sem unidade
+	Pb    	    	: REAL := 0.0; // sem unidade
+	Pc    	   		: REAL := 0.0; // sem unidade	
 		
-	Qt    	    	: REAL := 0.0; // 201AH - Potencia reativa combinada x 0,1 var
-	Qa    	    	: REAL := 0.0; // 201CH - Potencia reativa fase A x 0,1 var
-	Qb    	    	: REAL := 0.0; // 201EH - Potencia reativa fase B x 0,1 var
-	Qc    	    	: REAL := 0.0; // 2020H - Potencia reativa fase C x 0,1 var
+	Qt    	    	: REAL := 0.0; // var
+	Qa    	    	: REAL := 0.0; // var
+	Qb    	    	: REAL := 0.0; // var
+	Qc    	    	: REAL := 0.0; // var
 
-	PFt    	    	: REAL := 0.0; // 202AH - Fator de potência combinado (número positivo: indutivo, número negativo: capacitivo) (x  0,001)
-	PFa    	    	: REAL := 0.0; // 202CH - Fator de potência de fase A (número positivo: indutivo, número negativo: capacitivo)  (×0,001)
-	PFb    	    	: REAL := 0.0; // 202EH - Fator de potência de fase B (número positivo: indutivo, número negativo: capacitivo)  (×0,001)
-	PFc    	    	: REAL := 0.0; // 2030H - Fator de potência de fase C (número positivo: indutivo, número negativo: capacitivo)  (×0,001)
+	PFt    	    	: REAL := 0.0; // Watts
+	PFa    	    	: REAL := 0.0; // Watts
+	PFb    	    	: REAL := 0.0; // Watts
+	PFc    	    	: REAL := 0.0; // Watts
 	
 	// Limites físicos (ajustar conforme instalação)
     PFMIN 			: REAL := 0.5;
@@ -75,13 +77,19 @@ VAR
 	Pt_filt 		: REAL :=0;
     Qt_filt 		: REAL :=0;
     PFt_filt 		: REAL :=0;
+	
+	// DETECÇÃO DE CONGELAMENTO
+    tonFreeze       : TON;
+    bFreezeAlarm    : BOOL := FALSE;
+    bFreezePrev     : BOOL := FALSE;   // Para logar só na borda de subida
+    FREEZE_TIME     : TIME := T#5S;
 END_VAR
 
     // ═══════════════════════════════════════════════════════════════
     // 1. RESET DE ESTADO
     // ═══════════════════════════════════════════════════════════════
     
-    GVL_ALARM_MANAGER.ALARM_MEAS_RANGE_ERROR := FALSE;
+    GVL_Alarm.ALARM_MEAS_RANGE_ERROR := FALSE;
     
     // ═══════════════════════════════════════════════════════════════
     // 2. CONVERSÃO DE ESCALAS
@@ -91,43 +99,59 @@ END_VAR
     	
     	E_MeasDeviceType.CHINT_DTSU666 :
     	 
-    		Ua  := valorLido.EmReal.Ua * 0.1;				// em Volts
-    		Ub  := valorLido.EmReal.Ub * 0.1;				// em Volts
-    		Uc  := valorLido.EmReal.Uc * 0.1;				// em Volts
+    		Ua  := chint.EmReal.Ua * 0.1;			// em Volts
+    		Ub  := chint.EmReal.Ub * 0.1;			// em Volts
+    		Uc  := chint.EmReal.Uc * 0.1;			// em Volts
     		
-    		Ia  := valorLido.EmReal.Ia * 0.001;				// em Amperes
-    		Ib  := valorLido.EmReal.Ib * 0.001;				// em Amperes
-    		Ic  := valorLido.EmReal.Ic * 0.001;				// em Amperes
+    		Ia  := chint.EmReal.Ia * 0.001;			// em Amperes
+    		Ib  := chint.EmReal.Ib * 0.001;			// em Amperes
+    		Ic  := chint.EmReal.Ic * 0.001;			// em Amperes
     		
-    		Pt  := valorLido.EmReal.Pt *0.0001;				// kW
-    		Pa  := valorLido.EmReal.Pa *0.0001;				// kW
-    		Pb  := valorLido.EmReal.Pb *0.0001;				// kW
-    		Pc  := valorLido.EmReal.Pc *0.0001;				// kW
+    		Pt  := chint.EmReal.Pt *0.0001;			// kW
+    		Pa  := chint.EmReal.Pa *0.0001;			// kW
+    		Pb  := chint.EmReal.Pb *0.0001;			// kW
+    		Pc  := chint.EmReal.Pc *0.0001;			// kW
     		
-    		Qt  := valorLido.EmReal.Qt *0.0001;				// kvar
-    		Qa  := valorLido.EmReal.Qa *0.0001;				// kvar
-    		Qb  := valorLido.EmReal.Qb *0.0001;				// kvar
-    		Qc  := valorLido.EmReal.Qc *0.0001;				// xkvar
+    		Qt  := chint.EmReal.Qt *0.0001;			// kvar
+    		Qa  := chint.EmReal.Qa *0.0001;			// kvar
+    		Qb  := chint.EmReal.Qb *0.0001;			// kvar
+    		Qc  := chint.EmReal.Qc *0.0001;			// xkvar
     		
-    		PFt := valorLido.EmReal.PFt *0.001;	
-    		PFa := valorLido.EmReal.PFa *0.001;
-    		PFb := valorLido.EmReal.PFb *0.001;
-    		PFc := valorLido.EmReal.PFc *0.001;
+    		PFt := chint.EmReal.PFt *0.001;	
+    		PFa := chint.EmReal.PFa *0.001;
+    		PFb := chint.EmReal.PFb *0.001;
+    		PFc := chint.EmReal.PFc *0.001;
     
     	E_MeasDeviceType.RELAY_URP1439TU :
-    
-    		Ua  := valorLido.EmReal.Ua;				// em Volts
-    		Ub  := valorLido.EmReal.Ub;				// em Volts
-    		Uc  := valorLido.EmReal.Uc;				// em Volts
+    		(*
+    		14 registros - 28 words
+    		PFa    	    : REAL := 0.0; // 0099H - Valor positivo: 0…16384 × (1/16384) e Valor negativo: 49151…65535 = -((65535 - valor lido) / 16384)
+    		PFb    	    : REAL := 0.0; // 009AH - Valor positivo: 0…16384 × (1/16384) e Valor negativo: 49151…65535 = -((65535 - valor lido) / 16384)
+    		PFc    	    : REAL := 0.0; // 009BH - Valor positivo: 0…16384 × (1/16384) e Valor negativo: 49151…65535 = -((65535 - valor lido) / 16384)
+    		Reserved01  : REAL;        // 009CH - sem informação
+    		Reserved02  : REAL;        // 009DH - sem informação
+    		Reserved03  : REAL;        // 009EH - sem informação
+    		Reserved04  : REAL;        // 009FH - sem informação		
+    		Ia    	    : REAL := 0.0; // 00A0H - 12…25.600 × (1/256) A (multiplicar por RTC)
+    		Ib    	    : REAL := 0.0; // 00A1H - 12…25.600 × (1/256) A (multiplicar por RTC)
+    		Ic    	    : REAL := 0.0; // 00A2H - 12…25.600 × (1/256) A (multiplicar por RTC)	
+    		Reserved05  : REAL;        // 00A3H - sem informação
+    		Ua    	    : REAL := 0.0; // 00A4H - 256…64.000 × (1/128) Vca (multiplicar por RTP)
+    		Ub    	    : REAL := 0.0; // 00A5H - 256…64.000 × (1/128) Vca (multiplicar por RTP)
+    		Uc    	    : REAL := 0.0; // 00A6H - 256…64.000 × (1/128) Vca (multiplicar por RTP)	
+    		*)
     		
-    		Ia  := valorLido.EmReal.Ia;				// em Amperes
-    		Ib  := valorLido.EmReal.Ib;				// em Amperes
-    		Ic  := valorLido.EmReal.Ic;				// em Amperes
+    		PFa := URP1439.EmReal.PFa;
+    		PFb := URP1439.EmReal.PFb;
+    		PFc := URP1439.EmReal.PFc;
     		
-    		PFt := valorLido.EmReal.PFt;	
-    		PFa := valorLido.EmReal.PFa;
-    		PFb := valorLido.EmReal.PFb;
-    		PFc := valorLido.EmReal.PFc;
+    		Ua  := URP1439.EmReal.Ua;				// em Volts
+    		Ub  := URP1439.EmReal.Ub;				// em Volts
+    		Uc  := URP1439.EmReal.Uc;				// em Volts
+    		
+    		Ia  := URP1439.EmReal.Ia;				// em Amperes
+    		Ib  := URP1439.EmReal.Ib;				// em Amperes
+    		Ic  := URP1439.EmReal.Ic;				// em Amperes
     
     	E_MeasDeviceType.RELAY_URP6000:
     		// a definir
@@ -142,98 +166,101 @@ END_VAR
     // ═══════════════════════════════════════════════════════════════
     // validação de tensões
     
-    IF (Ua < GVL_Persis.VMIN) OR (Ua > GVL_Persis.VMAX) THEN
-        GVL_ALARM_MANAGER.ALARM_MEAS_RANGE_ERROR := TRUE;
+    IF (Ua < GVL_Pers.VMIN) OR (Ua > GVL_Pers.VMAX) THEN
+        GVL_Alarm.ALARM_MEAS_RANGE_ERROR := TRUE;
     	FC_LogEvent(eCode:=E_EventCode.ALARM_MEAS_VOLTAGE_A_RANGE,bRaised:=TRUE,rParam1:=Ua,rParam2:=0.0,uMachState:= GVL_Main.MachineState);
     END_IF
-    IF (Ub < GVL_Persis.VMIN) OR (Ub > GVL_Persis.VMAX) THEN
-        GVL_ALARM_MANAGER.ALARM_MEAS_RANGE_ERROR := TRUE;
+    IF (Ub < GVL_Pers.VMIN) OR (Ub > GVL_Pers.VMAX) THEN
+        GVL_Alarm.ALARM_MEAS_RANGE_ERROR := TRUE;
     	FC_LogEvent(eCode:=E_EventCode.ALARM_MEAS_VOLTAGE_B_RANGE,bRaised:=TRUE,rParam1:=Ub,rParam2:=0.0,uMachState:= GVL_Main.MachineState);
     END_IF
-    IF (Uc < GVL_Persis.VMIN) OR (Uc > GVL_Persis.VMAX) THEN
-        GVL_ALARM_MANAGER.ALARM_MEAS_RANGE_ERROR := TRUE;
+    IF (Uc < GVL_Pers.VMIN) OR (Uc > GVL_Pers.VMAX) THEN
+        GVL_Alarm.ALARM_MEAS_RANGE_ERROR := TRUE;
     	FC_LogEvent(eCode:=E_EventCode.ALARM_MEAS_VOLTAGE_C_RANGE,bRaised:=TRUE,rParam1:=Uc,rParam2:=0.0,uMachState:= GVL_Main.MachineState);
     END_IF
     
     // validação de correntes
-    IF (ABS(Ia) > GVL_Persis.IMAX) THEN
-        GVL_ALARM_MANAGER.ALARM_MEAS_RANGE_ERROR := TRUE;
+    IF (ABS(Ia) > GVL_Pers.IMAX) THEN
+        GVL_Alarm.ALARM_MEAS_RANGE_ERROR := TRUE;
     	FC_LogEvent(eCode:=E_EventCode.ALARM_MEAS_CURRENT_A_RANGE,bRaised:=TRUE,rParam1:=Ia,rParam2:=0.0,uMachState:= GVL_Main.MachineState);
     END_IF
-    IF (ABS(Ib) > GVL_Persis.IMAX) THEN
-        GVL_ALARM_MANAGER.ALARM_MEAS_RANGE_ERROR := TRUE;
+    IF (ABS(Ib) > GVL_Pers.IMAX) THEN
+        GVL_Alarm.ALARM_MEAS_RANGE_ERROR := TRUE;
     	FC_LogEvent(eCode:=E_EventCode.ALARM_MEAS_CURRENT_B_RANGE,bRaised:=TRUE,rParam1:=Ib,rParam2:=0.0,uMachState:= GVL_Main.MachineState);
     END_IF
-    IF (ABS(Ic) > GVL_Persis.IMAX) THEN
-        GVL_ALARM_MANAGER.ALARM_MEAS_RANGE_ERROR := TRUE;
+    IF (ABS(Ic) > GVL_Pers.IMAX) THEN
+        GVL_Alarm.ALARM_MEAS_RANGE_ERROR := TRUE;
     	FC_LogEvent(eCode:=E_EventCode.ALARM_MEAS_CURRENT_C_RANGE,bRaised:=TRUE,rParam1:=Ic,rParam2:=0.0,uMachState:= GVL_Main.MachineState);
     END_IF
     
-    // validação de potencias ativas
-    IF (ABS(Pt) > GVL_Persis.PMAX) THEN
-        GVL_ALARM_MANAGER.ALARM_MEAS_RANGE_ERROR := TRUE;
-    	FC_LogEvent(eCode:=E_EventCode.ALARM_MEAS_PT_RANGE,bRaised:=TRUE,rParam1:=Pt,rParam2:=0.0,uMachState:= GVL_Main.MachineState);
-    END_IF
-    IF (ABS(Pa) > GVL_Persis.PMAX) THEN
-        GVL_ALARM_MANAGER.ALARM_MEAS_RANGE_ERROR := TRUE;
-    	FC_LogEvent(eCode:=E_EventCode.ALARM_MEAS_PA_RANGE,bRaised:=TRUE,rParam1:=Pa,rParam2:=0.0,uMachState:= GVL_Main.MachineState);
-    END_IF
-    IF (ABS(Pb) > GVL_Persis.PMAX) THEN
-        GVL_ALARM_MANAGER.ALARM_MEAS_RANGE_ERROR := TRUE;
-    	FC_LogEvent(eCode:=E_EventCode.ALARM_MEAS_PB_RANGE,bRaised:=TRUE,rParam1:=Pb,rParam2:=0.0,uMachState:= GVL_Main.MachineState);
-    END_IF
-    IF (ABS(Pc) > GVL_Persis.PMAX) THEN
-        GVL_ALARM_MANAGER.ALARM_MEAS_RANGE_ERROR := TRUE;
-    	FC_LogEvent(eCode:=E_EventCode.ALARM_MEAS_PC_RANGE,bRaised:=TRUE,rParam1:=Pc,rParam2:=0.0,uMachState:= GVL_Main.MachineState);
-    END_IF
-    
-    // validação de potencias reativas
-    IF (ABS(Qt) > GVL_Persis.QMAX) THEN
-        GVL_ALARM_MANAGER.ALARM_MEAS_RANGE_ERROR := TRUE;
-    	FC_LogEvent(eCode:=E_EventCode.ALARM_MEAS_QT_RANGE,bRaised:=TRUE,rParam1:=Qt,rParam2:=0.0,uMachState:= GVL_Main.MachineState);
-    END_IF
-    IF (ABS(Qa) > GVL_Persis.QMAX) THEN
-        GVL_ALARM_MANAGER.ALARM_MEAS_RANGE_ERROR := TRUE;
-    	FC_LogEvent(eCode:=E_EventCode.ALARM_MEAS_QA_RANGE,bRaised:=TRUE,rParam1:=Qa,rParam2:=0.0,uMachState:= GVL_Main.MachineState);
-    END_IF
-    IF (ABS(Qb) > GVL_Persis.QMAX) THEN
-        GVL_ALARM_MANAGER.ALARM_MEAS_RANGE_ERROR := TRUE;
-    	FC_LogEvent(eCode:=E_EventCode.ALARM_MEAS_QB_RANGE,bRaised:=TRUE,rParam1:=Qb,rParam2:=0.0,uMachState:= GVL_Main.MachineState);
-    END_IF
-    IF (ABS(Qc) > GVL_Persis.QMAX) THEN
-        GVL_ALARM_MANAGER.ALARM_MEAS_RANGE_ERROR := TRUE;
-    	FC_LogEvent(eCode:=E_EventCode.ALARM_MEAS_QC_RANGE,bRaised:=TRUE,rParam1:=Qc,rParam2:=0.0,uMachState:= GVL_Main.MachineState);
-    END_IF
-    	
     // validação do fator das potencias
-    	
-    IF (ABS(PFt) < PFMIN) OR (ABS(PFt) >PFMAX)  THEN
-        GVL_ALARM_MANAGER.ALARM_MEAS_RANGE_ERROR := TRUE;
-    	FC_LogEvent(eCode:=E_EventCode.ALARM_MEAS_PFT_RANGE,bRaised:=TRUE,rParam1:=PFt,rParam2:=0.0,uMachState:= GVL_Main.MachineState);
-    END_IF
     IF (ABS(PFa) < PFMIN) OR (ABS(PFa) >PFMAX)  THEN
-        GVL_ALARM_MANAGER.ALARM_MEAS_RANGE_ERROR := TRUE;
+        GVL_Alarm.ALARM_MEAS_RANGE_ERROR := TRUE;
     	FC_LogEvent(eCode:=E_EventCode.ALARM_MEAS_PFA_RANGE,bRaised:=TRUE,rParam1:=PFa,rParam2:=0.0,uMachState:= GVL_Main.MachineState);
     END_IF
     IF (ABS(PFb) < PFMIN) OR (ABS(PFb) >PFMAX)  THEN
-        GVL_ALARM_MANAGER.ALARM_MEAS_RANGE_ERROR := TRUE;
+        GVL_Alarm.ALARM_MEAS_RANGE_ERROR := TRUE;
     	FC_LogEvent(eCode:=E_EventCode.ALARM_MEAS_PFB_RANGE,bRaised:=TRUE,rParam1:=PFb,rParam2:=0.0,uMachState:= GVL_Main.MachineState);
     END_IF
     IF (ABS(PFc) < PFMIN) OR (ABS(PFc) >PFMAX)  THEN
-        GVL_ALARM_MANAGER.ALARM_MEAS_RANGE_ERROR := TRUE;
+        GVL_Alarm.ALARM_MEAS_RANGE_ERROR := TRUE;
     	FC_LogEvent(eCode:=E_EventCode.ALARM_MEAS_PFC_RANGE,bRaised:=TRUE,rParam1:=PFc,rParam2:=0.0,uMachState:= GVL_Main.MachineState);
+    END_IF
+    
+    IF Meas_Device = E_MeasDeviceType.CHINT_DTSU666 THEN 
+    	// validação de potencias ativas
+    	IF (ABS(Pt) > GVL_Pers.PMAX) THEN
+    		GVL_Alarm.ALARM_MEAS_RANGE_ERROR := TRUE;
+    		FC_LogEvent(eCode:=E_EventCode.ALARM_MEAS_PT_RANGE,bRaised:=TRUE,rParam1:=Pt,rParam2:=0.0,uMachState:= GVL_Main.MachineState);
+    	END_IF
+    	IF (ABS(Pa) > GVL_Pers.PMAX) THEN
+    		GVL_Alarm.ALARM_MEAS_RANGE_ERROR := TRUE;
+    		FC_LogEvent(eCode:=E_EventCode.ALARM_MEAS_PA_RANGE,bRaised:=TRUE,rParam1:=Pa,rParam2:=0.0,uMachState:= GVL_Main.MachineState);
+    	END_IF
+    	IF (ABS(Pb) > GVL_Pers.PMAX) THEN
+    		GVL_Alarm.ALARM_MEAS_RANGE_ERROR := TRUE;
+    		FC_LogEvent(eCode:=E_EventCode.ALARM_MEAS_PB_RANGE,bRaised:=TRUE,rParam1:=Pb,rParam2:=0.0,uMachState:= GVL_Main.MachineState);
+    	END_IF
+    	IF (ABS(Pc) > GVL_Pers.PMAX) THEN
+    		GVL_Alarm.ALARM_MEAS_RANGE_ERROR := TRUE;
+    		FC_LogEvent(eCode:=E_EventCode.ALARM_MEAS_PC_RANGE,bRaised:=TRUE,rParam1:=Pc,rParam2:=0.0,uMachState:= GVL_Main.MachineState);
+    	END_IF
+    	
+    	// validação de potencias reativas
+    	IF (ABS(Qt) > GVL_Pers.QMAX) THEN
+    		GVL_Alarm.ALARM_MEAS_RANGE_ERROR := TRUE;
+    		FC_LogEvent(eCode:=E_EventCode.ALARM_MEAS_QT_RANGE,bRaised:=TRUE,rParam1:=Qt,rParam2:=0.0,uMachState:= GVL_Main.MachineState);
+    	END_IF
+    	IF (ABS(Qa) > GVL_Pers.QMAX) THEN
+    		GVL_Alarm.ALARM_MEAS_RANGE_ERROR := TRUE;
+    		FC_LogEvent(eCode:=E_EventCode.ALARM_MEAS_QA_RANGE,bRaised:=TRUE,rParam1:=Qa,rParam2:=0.0,uMachState:= GVL_Main.MachineState);
+    	END_IF
+    	IF (ABS(Qb) > GVL_Pers.QMAX) THEN
+    		GVL_Alarm.ALARM_MEAS_RANGE_ERROR := TRUE;
+    		FC_LogEvent(eCode:=E_EventCode.ALARM_MEAS_QB_RANGE,bRaised:=TRUE,rParam1:=Qb,rParam2:=0.0,uMachState:= GVL_Main.MachineState);
+    	END_IF
+    	IF (ABS(Qc) > GVL_Pers.QMAX) THEN
+    		GVL_Alarm.ALARM_MEAS_RANGE_ERROR := TRUE;
+    		FC_LogEvent(eCode:=E_EventCode.ALARM_MEAS_QC_RANGE,bRaised:=TRUE,rParam1:=Qc,rParam2:=0.0,uMachState:= GVL_Main.MachineState);
+    	END_IF
+    		
+    	// validação do fator das potencias
+    	IF (ABS(PFt) < PFMIN) OR (ABS(PFt) >PFMAX)  THEN
+    		GVL_Alarm.ALARM_MEAS_RANGE_ERROR := TRUE;
+    		FC_LogEvent(eCode:=E_EventCode.ALARM_MEAS_PFT_RANGE,bRaised:=TRUE,rParam1:=PFt,rParam2:=0.0,uMachState:= GVL_Main.MachineState);
+    	END_IF
     END_IF
     
     // ═══════════════════════════════════════════════════════════════
     // 4. VALIDAÇÃO CRUZADA (SÓ SE NÃO HOUVER ERRO AINDA)
     // ═══════════════════════════════════════════════════════════════
     
-    IF NOT GVL_ALARM_MANAGER.ALARM_MEAS_RANGE_ERROR THEN
+    IF NOT GVL_Alarm.ALARM_MEAS_RANGE_ERROR THEN
     	// Só valida se Pa significativo (ex: > 1 kW)
     	IF ABS(Pa) > 1.0 THEN
     		Calculado := Ua * Ia * PFa / 1000;
     		IF ABS(Pa - Calculado) > (ABS(Pa) * Tolerancia) THEN  // ✅ Usa Pa, não Calculado
-    			GVL_ALARM_MANAGER.ALARM_MEAS_RANGE_ERROR := TRUE;
+    			GVL_Alarm.ALARM_MEAS_RANGE_ERROR := TRUE;
     			FC_LogEvent(eCode:=E_EventCode.ALARM_MEAS_PA_XCHECK_FAIL,bRaised:=TRUE,rParam1:=Pa,rParam2:=0.0,uMachState:= GVL_Main.MachineState);
     		END_IF
     	END_IF
@@ -242,7 +269,7 @@ END_VAR
     	IF ABS(Pb) > 1.0 THEN
     		Calculado := Ub * Ib * PFb / 1000;
     		IF ABS(Pb - Calculado) > (ABS(Pb) * Tolerancia) THEN
-    			GVL_ALARM_MANAGER.ALARM_MEAS_RANGE_ERROR := TRUE;
+    			GVL_Alarm.ALARM_MEAS_RANGE_ERROR := TRUE;
     			FC_LogEvent(eCode:=E_EventCode.ALARM_MEAS_PB_XCHECK_FAIL,bRaised:=TRUE,rParam1:=Pb,rParam2:=0.0,uMachState:= GVL_Main.MachineState);
     		END_IF
     	END_IF
@@ -250,7 +277,7 @@ END_VAR
     	IF ABS(Pc) > 1.0 THEN
     		Calculado := Uc * Ic * PFc / 1000;
     		IF ABS(Pc - Calculado) > (ABS(Pc) * Tolerancia) THEN
-    			GVL_ALARM_MANAGER.ALARM_MEAS_RANGE_ERROR := TRUE;
+    			GVL_Alarm.ALARM_MEAS_RANGE_ERROR := TRUE;
     			FC_LogEvent(eCode:=E_EventCode.ALARM_MEAS_PC_XCHECK_FAIL,bRaised:=TRUE,rParam1:=Pc,rParam2:=0.0,uMachState:= GVL_Main.MachineState);
     		END_IF
     	END_IF
@@ -258,7 +285,7 @@ END_VAR
     	SomaP := Pa + Pb + Pc;
     	IF ABS(Pt) > 1.0 THEN  // ✅ Só valida se significativo
     		IF ABS(Pt - SomaP) > (ABS(Pt) * Tolerancia) THEN  // ✅ Usa Pt
-    			GVL_ALARM_MANAGER.ALARM_MEAS_RANGE_ERROR := TRUE;
+    			GVL_Alarm.ALARM_MEAS_RANGE_ERROR := TRUE;
     			FC_LogEvent(eCode:=E_EventCode.ALARM_MEAS_PT_XCHECK_FAIL,bRaised:=TRUE,rParam1:=Pt,rParam2:=0.0,uMachState:= GVL_Main.MachineState);
     		END_IF
     	END_IF
@@ -269,7 +296,7 @@ END_VAR
     	IF Calculado > 10 THEN 									// 1 kva
     		Calculado := SomaP / Calculado;
     		IF ABS(PFt - Calculado) > 0.05 THEN
-    			GVL_ALARM_MANAGER.ALARM_MEAS_RANGE_ERROR := TRUE;
+    			GVL_Alarm.ALARM_MEAS_RANGE_ERROR := TRUE;
     			FC_LogEvent(eCode:=E_EventCode.ALARM_MEAS_PFT_XCHECK_FAIL,bRaised:=TRUE,rParam1:=PFt,rParam2:=0.0,uMachState:= GVL_Main.MachineState);
     		END_IF
     	END_IF
@@ -278,24 +305,44 @@ END_VAR
     // ═══════════════════════════════════════════════════════════════
     // 5. DETECÇÃO DE CONGELAMENTO (OPCIONAL)
     // ═══════════════════════════════════════════════════════════════
-    IF NOT GVL_ALARM_MANAGER.ALARM_MEAS_RANGE_ERROR THEN
-    	IF ABS(Pt - Pt_last) < 1.0 THEN  // < 1 kW de variação
-    		frozen_count := frozen_count + 1;
-    	ELSE
-    		frozen_count := 0;
-    	END_IF
-    	
-    	IF frozen_count > FREEZE_THRESHOLD THEN
-    		GVL_ALARM_MANAGER.ALARM_MEAS_RANGE_ERROR := TRUE;
-    		FC_LogEvent(eCode:=E_EventCode.ALARM_MEAS_FROZEN,bRaised:=TRUE,rParam1:=Pt,rParam2:=Pt_last,uMachState:= GVL_Main.MachineState);
-    	END_IF
+    (*
+    // Suspeita de congelamento — sem dependência de ALARM_MEAS_RANGE_ERROR
+    bFrozenSuspect := (NOT bFirstRun)
+                      AND (ABS(Pt - Pt_last) < 1.0);
+    
+    tonFreeze(IN := bFrozenSuspect, PT := FREEZE_TIME);
+    
+    bFreezeAlarm := tonFreeze.Q;
+    
+    // Loga SOMENTE na borda de subida — evita flood
+    IF bFreezeAlarm AND NOT bFreezePrev THEN
+        FC_LogEvent(
+            eCode      := E_EventCode.ALARM_MEAS_FROZEN,
+            bRaised    := TRUE,
+            rParam1    := Pt,
+            rParam2    := Pt_last,
+            uMachState := GVL_Main.MachineState
+        );
     END_IF
     
-    Pt_lastatus:= Pt;
+    // Loga recuperação na borda de descida
+    IF NOT bFreezeAlarm AND bFreezePrev THEN
+        FC_LogEvent(
+            eCode      := E_EventCode.ALARM_MEAS_FROZEN,
+            bRaised    := FALSE,
+            rParam1    := Pt,
+            rParam2    := Pt_last,
+            uMachState := GVL_Main.MachineState
+        );
+    END_IF
+    
+    bFreezePrev  := bFreezeAlarm;
+    Pt_last      := Pt;
+    *)
     // ═══════════════════════════════════════════════════════════════
     // 6. TRATAMENTO FINAL DE ERRO/SUCESSO
     // ═══════════════════════════════════════════════════════==══════
-    IF GVL_ALARM_MANAGER.ALARM_MEAS_RANGE_ERROR THEN
+    IF GVL_Alarm.ALARM_MEAS_RANGE_ERROR THEN
     	
         nErrors := MIN(nErrors + 1, 5);	// Clamp em 5
         bDadosOK := FALSE;  // Dado atual é inválido
@@ -326,9 +373,9 @@ END_VAR
         ELSE
     		// Filtro exponencial: y[n] = α·x[n] + (1-α)·y[n-1]
             // ALPHA configurável (ex: 0.25 → ~3s para 95% do valor)
-            Pt_filt := GVL_Persis.ALPHA * Pt + (1.0 - GVL_Persis.ALPHA) * Pt_filt;
-            Qt_filt := GVL_Persis.ALPHA * Qt + (1.0 - GVL_Persis.ALPHA) * Qt_filt;
-            PFt_filt := GVL_Persis.ALPHA * PFt + (1.0 - GVL_Persis.ALPHA) * PFt_filt;
+            Pt_filt := GVL_Pers.ALPHA * Pt + (1.0 - GVL_Pers.ALPHA) * Pt_filt;
+            Qt_filt := GVL_Pers.ALPHA * Qt + (1.0 - GVL_Pers.ALPHA) * Qt_filt;
+            PFt_filt := GVL_Pers.ALPHA * PFt + (1.0 - GVL_Pers.ALPHA) * PFt_filt;
         END_IF
     	
     	// 3. ATUALIZAÇÃO DE VARIÁVEIS GLOBAIS
